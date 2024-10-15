@@ -38,17 +38,17 @@ public final class Settings extends YamlConfig {
 
     public static final class MESSAGES {
 
-      public String USAGE = "Help on command:{NL}/spec go (Nickname){NL}/spec off";
-      public String SPECIFY = "Specify the suspect's nickname.";
-      public String SUSPECT_NOT_FOUND = "Player not found.";
+      public String USAGE = "Command help:{NL}/spec go (Nickname){NL}/spec off";
+      public String SPECIFY = "Please specify the suspect's nickname.";
+      public String SUSPECT_NOT_FOUND = "The player could not be found.";
       public String CANNOT_SPECTATE_SELF = "You cannot spectate yourself.";
       public String NO_SPECTATE_SPECTATOR = "You cannot spectate a player who is already spectating.";
       public String STARTED = "You are now spectating {0}.";
-      public String ALREADY_STARTED = "You're already a spectator for someone.";
+      public String ALREADY_STARTED = "You are already spectating someone.";
       public String STOPPED = "You have stopped spectating.";
-      public String NOT_SPECTATING = "You are not spectating anyone.";
-      public String SUSPECT_LEFT = "Player you were spectating has left the server.";
-      public String TOO_FAR = "You cannot fly too far away.";
+      public String NOT_SPECTATING = "You are not currently spectating anyone.";
+      public String SUSPECT_LEFT = "The player you were spectating has left the server.";
+      public String TOO_FAR = "You cannot move too far away while spectating.";
     }
   }
 }
