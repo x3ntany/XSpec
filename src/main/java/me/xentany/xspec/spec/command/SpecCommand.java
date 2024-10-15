@@ -4,6 +4,7 @@ import me.xentany.xspec.Settings;
 import me.xentany.xspec.SpecPlugin;
 import me.xentany.xspec.api.Spec;
 import me.xentany.xspec.api.SpecManager;
+import me.xentany.xspec.util.DateFormatUtil;
 import me.xentany.xspec.util.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -65,7 +66,10 @@ public final class SpecCommand implements CommandExecutor {
                   .build();
 
               if (specManager.tryStart(spec)) {
-                MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.STARTED, suspect.getName());
+                MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.STARTED,
+                    suspect.getName(),
+                    DateFormatUtil.getFormattedDate()
+                );
               } else {
                 MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.ALREADY_STARTED);
               }
@@ -77,10 +81,16 @@ public final class SpecCommand implements CommandExecutor {
       case "off" -> this.specManager.findSpec(spectator).ifPresentOrElse(
           spec -> {
             this.specManager.stop(spec);
-            MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.STOPPED);
+            MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.STOPPED, DateFormatUtil.getFormattedDate());
           },
           () -> MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.NOT_SPECTATING)
       );
+
+      default -> {
+        spectator.sendMessage("unknown"); //todo fixed
+      }
+      //todo afk check
+      //todo tab complete
     }
 
     return true;
