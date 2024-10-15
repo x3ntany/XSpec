@@ -38,8 +38,10 @@ public final class SpecManagerImpl implements SpecManager {
         specs.values().forEach(spec -> {
           var spectator = spec.spectator();
           var suspectLocation = spec.suspect().getLocation();
+          var spectatorLocation = spectator.getLocation();
 
-          if (spectator.getLocation().distanceSquared(suspectLocation) > MAX_DISTANCE_SQUARED) {
+          if (!spectatorLocation.getWorld().equals(suspectLocation.getWorld()) ||
+              spectatorLocation.distanceSquared(suspectLocation) > MAX_DISTANCE_SQUARED) {
             Bukkit.getScheduler().runTask(plugin, () -> {
               spectator.teleportAsync(suspectLocation);
               MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.TOO_FAR);
@@ -81,17 +83,24 @@ public final class SpecManagerImpl implements SpecManager {
   public void stop(final @NonNull Spec spec) {
     var spectator = spec.spectator();
 
-    Optional.ofNullable(Bukkit.getWorld(Settings.IMP.MAIN.TELEPORT_WORLD_NAME))
-        .ifPresentOrElse(world -> {
-          var x = Settings.IMP.MAIN.TELEPORT_X;
-          var y = Settings.IMP.MAIN.TELEPORT_Y;
-          var z = Settings.IMP.MAIN.TELEPORT_Z;
+    var x = Settings.IMP.MAIN.TELEPORT_X;
+    var y = Settings.IMP.MAIN.TELEPORT_Y;
+    var z = Settings.IMP.MAIN.TELEPORT_Z;
 
+    Optional.ofNullable(Bukkit.getWorld(Settings.IMP.MAIN.TELEPORT_WORLD_NAME)).ifPresentOrElse(
+        world -> {
           spectator.teleportAsync(new Location(world, x, y, z));
           spectator.setGameMode(GameMode.SURVIVAL);
+        },
+        () -> {
+          spectator.teleportAsync(new Location(spectator.getWorld(), x, y, z));
+          spectator.setGameMode(GameMode.SURVIVAL);
 
-          DebugInfoUtil.showDebugInfo(spectator);
-        }, () -> spectator.sendMessage("Teleport world not found or null"));
+          MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.WORLD_NOT_FOUND);
+        }
+    );
+
+    DebugInfoUtil.showDebugInfo(spectator);
 
     this.specs.remove(spectator);
   }
