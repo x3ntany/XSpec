@@ -2,5 +2,6 @@ name: XSpec
 version: '${project.version}'
 main: me.xentany.xspec.SpecPlugin
 api-version: '1.16'
+softdepend: [ProtocolLib]
 commands:
   spec: {}
