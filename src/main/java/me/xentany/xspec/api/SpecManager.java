@@ -7,6 +7,7 @@ import org.jetbrains.annotations.UnmodifiableView;
 import java.util.Map;
 import java.util.Optional;
 
+@SuppressWarnings("unused") //api lol
 public interface SpecManager {
 
   boolean isInSpec(final @NonNull Player player);

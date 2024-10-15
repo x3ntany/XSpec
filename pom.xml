@@ -69,6 +69,8 @@
   </repositories>
 
   <dependencies>
+      <!--suppress VulnerableLibrariesLocal -->
+      <!--idk-->
       <dependency>
           <groupId>com.destroystokyo.paper</groupId>
           <artifactId>paper-api</artifactId>
