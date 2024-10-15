@@ -3,6 +3,7 @@ package me.xentany.xspec.util;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.reflect.FieldAccessException;
 import me.xentany.xspec.SpecPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -37,13 +38,12 @@ public final class DebugInfoUtil {
     }
   }
 
-  private static void sendReducedDebugInfoPacket(final @NonNull Player player,
-                                                 final boolean hideDebugInfo) {
+  private static void sendReducedDebugInfoPacket(final @NonNull Player player, final boolean hideDebugInfo) {
     if (DebugInfoUtil.isProtocolLibAvailable) {
-      var packet = DebugInfoUtil.protocolManager.createPacket(PacketType.Play.Server.GAME_STATE_CHANGE);
+      var packet = DebugInfoUtil.protocolManager.createPacket(PacketType.Play.Server.ENTITY_STATUS);
 
-      packet.getIntegers().write(0, 3);
-      packet.getFloat().write(1, hideDebugInfo ? 1.0f : 0.0f);
+      packet.getIntegers().write(0, player.getEntityId());
+      packet.getBytes().write(0, (byte) (hideDebugInfo ? 22 : 23));
 
       DebugInfoUtil.protocolManager.sendServerPacket(player, packet);
     }
