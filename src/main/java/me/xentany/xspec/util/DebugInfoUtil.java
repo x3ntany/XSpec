@@ -3,42 +3,38 @@ package me.xentany.xspec.util;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.reflect.FieldAccessException;
 import me.xentany.xspec.SpecPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 public final class DebugInfoUtil {
 
-  private static @MonotonicNonNull ProtocolManager protocolManager;
+  private static ProtocolManager protocolManager;
   private static boolean isProtocolLibAvailable = false;
 
-  static {
+  public static void load() {
     if (Bukkit.getPluginManager().getPlugin("ProtocolLib") != null) {
       protocolManager = ProtocolLibrary.getProtocolManager();
       isProtocolLibAvailable = true;
     } else {
-      SpecPlugin.getInstance()
-          .getLogger()
-          .warning("ProtocolLib is not installed. DebugInfoUtil will not function");
+      SpecPlugin.getInstance().getLogger().warning("ProtocolLib not found. DebugInfoUtil will not function");
     }
   }
 
-  public static void hideDebugInfo(final @NonNull Player player) {
+  public static void hideDebugInfo(final @NotNull Player player) {
     if (DebugInfoUtil.isProtocolLibAvailable) {
       DebugInfoUtil.sendReducedDebugInfoPacket(player, true);
     }
   }
 
-  public static void showDebugInfo(final @NonNull Player player) {
+  public static void showDebugInfo(final @NotNull Player player) {
     if (DebugInfoUtil.isProtocolLibAvailable) {
       DebugInfoUtil.sendReducedDebugInfoPacket(player, false);
     }
   }
 
-  private static void sendReducedDebugInfoPacket(final @NonNull Player player, final boolean hideDebugInfo) {
+  private static void sendReducedDebugInfoPacket(final @NotNull Player player, final boolean hideDebugInfo) {
     if (DebugInfoUtil.isProtocolLibAvailable) {
       var packet = DebugInfoUtil.protocolManager.createPacket(PacketType.Play.Server.ENTITY_STATUS);
 
