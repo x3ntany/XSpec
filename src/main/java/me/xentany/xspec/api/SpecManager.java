@@ -1,7 +1,7 @@
 package me.xentany.xspec.api;
 
 import org.bukkit.entity.Player;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.Map;
@@ -10,11 +10,12 @@ import java.util.Optional;
 @SuppressWarnings("unused") //api lol
 public interface SpecManager {
 
-  boolean isInSpec(final @NonNull Player player);
-  boolean isSpectator(final @NonNull Player spectator);
-  boolean tryStart(final @NonNull Spec spec);
-  void stop(final @NonNull Spec spec);
+  boolean isInSpec(final @NotNull Player player);
+  boolean isSpectator(final @NotNull Player spectator);
+  boolean tryStart(final @NotNull Spec spec);
+  void stop(final @NotNull Spec spec);
   void stopAll();
-  Optional<Spec> findSpec(final @NonNull Player player);
-  @NonNull @UnmodifiableView Map<Player, Spec> getSpecs();
+  Optional<Spec> findSpec(final @NotNull Player player);
+  Optional<Spec> resolveSpec(final @NotNull Player spectator);
+  @NotNull @UnmodifiableView Map<Player, Spec> getSpecs();
 }
