@@ -103,7 +103,6 @@ public final class SpecLoggerImpl implements SpecLogger {
     }
   }
 
-  @Override
   public synchronized void stop() {
     try {
       this.log("Stopped spectating at: " + DateFormatUtil.getFormattedDate());
