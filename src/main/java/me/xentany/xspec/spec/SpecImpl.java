@@ -2,8 +2,8 @@ package me.xentany.xspec.spec;
 
 import me.xentany.xspec.api.Spec;
 import org.bukkit.entity.Player;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.jetbrains.annotations.NotNull;
 
-public record SpecImpl(@NonNull Player spectator,
-                       @NonNull Player suspect,
-                       long timestamp) implements Spec {}
+public record SpecImpl(@NotNull Player spectator,
+                       @NotNull Player suspect,
+                       @NotNull SpecLoggerImpl logger) implements Spec {}
