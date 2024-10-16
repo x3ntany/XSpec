@@ -5,4 +5,8 @@ api-version: '1.16'
 authors: [x3ntany] # Are you going to add yourself? Just don't delete me.
 softdepend: [ProtocolLib]
 commands:
-  spec: {}
+  spec:
+    permission: xspec.use
+permissions:
+  xspec.use:
+    default: op
