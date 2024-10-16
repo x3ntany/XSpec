@@ -48,7 +48,7 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
-public class Metrics {
+public final class Metrics {
 
   private final Plugin plugin;
 
@@ -61,7 +61,7 @@ public class Metrics {
    * @param serviceId The id of the service. It can be found at <a
    *     href="https://bstats.org/what-is-my-plugin-id">What is my plugin id?</a>
    */
-  public Metrics(final @NotNull Plugin plugin, final int serviceId) {
+  public Metrics(@NotNull Plugin plugin, int serviceId) {
     this.plugin = plugin;
     // Get the config file
     File bStatsFolder = new File(plugin.getDataFolder().getParentFile(), "bStats");
