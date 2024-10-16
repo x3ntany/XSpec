@@ -7,6 +7,7 @@ import me.xentany.xspec.spec.SpecManagerImpl;
 import me.xentany.xspec.util.DateFormatUtil;
 import me.xentany.xspec.util.DebugInfoUtil;
 import me.xentany.xspec.util.MessageUtil;
+import me.xentany.xspec.util.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -31,6 +32,10 @@ public final class SpecPlugin extends JavaPlugin {
     Optional.ofNullable(this.getCommand("spec"))
         .ifPresent(command -> command.setExecutor(new SpecCommand()));
     Bukkit.getPluginManager().registerEvents(new SpecHandler(), this);
+
+    if (Settings.IMP.MAIN.BSTATS) {
+      new Metrics(this, 23644);
+    }
   }
 
   @Override
