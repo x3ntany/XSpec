@@ -26,6 +26,9 @@ public final class Settings extends YamlConfig {
   @Comment("Don't use \\n, use {NL} for new line.")
   public static class MAIN {
 
+    @Comment("Lightweight and anonymous. Please keep enabled to support the author.")
+    public boolean BSTATS = true;
+
     @Comment("World and coordinates where player teleports to after a stop spec.")
     public String TELEPORT_WORLD_NAME = "world";
     public double TELEPORT_X = 0.5d;
