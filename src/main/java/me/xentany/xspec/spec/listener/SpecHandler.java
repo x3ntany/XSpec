@@ -7,54 +7,66 @@ import me.xentany.xspec.util.MessageUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerKickEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.framework.qual.DefaultQualifier;
+import org.bukkit.event.player.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
 
-@DefaultQualifier(NonNull.class)
 public final class SpecHandler implements Listener {
 
-  private final SpecManager specManager;
+  private final @NotNull SpecManager specManager;
 
   public SpecHandler() {
     this.specManager = SpecPlugin.getInstance().getSpecManager();
   }
 
   @EventHandler
-  public void on(final PlayerQuitEvent event) {
+  public void on(final @NotNull PlayerQuitEvent event) {
     this.onLogout(event.getPlayer());
   }
 
   @EventHandler
-  public void on(final PlayerKickEvent event) {
+  public void on(final @NotNull PlayerKickEvent event) {
     this.onLogout(event.getPlayer());
   }
 
   @EventHandler
-  public void on(final PlayerInteractEvent event) {
+  public void on(final @NotNull PlayerInteractEvent event) {
     if (this.specManager.isSpectator(event.getPlayer())) {
       event.setCancelled(true);
     }
   }
 
   @EventHandler
-  public void on(final PlayerCommandPreprocessEvent event) {
+  public void on(final @NotNull PlayerCommandPreprocessEvent event) {
     var player = event.getPlayer();
 
-    if (this.specManager.isSpectator(player) &&
-        Settings.IMP.MAIN.BLOCKED_COMMANDS.contains(event.getMessage().split(" ")[0].toLowerCase(Locale.ROOT))) {
-      event.setCancelled(true);
-      MessageUtil.formatAndSendIfNotEmpty(player, Settings.IMP.MAIN.MESSAGES.COMMAND_BLOCKED);
-    }
+    this.specManager.resolveSpec(player)
+        .ifPresent(spec -> {
+          var message = event.getMessage();
+
+          spec.logger().logCommand(message);
+
+          if (Settings.IMP.MAIN.BLOCKED_COMMANDS.contains(message.split(" ")[0].toLowerCase(Locale.ROOT))) {
+            event.setCancelled(true);
+
+            MessageUtil.formatAndSendIfNotEmpty(player, Settings.IMP.MAIN.MESSAGES.COMMAND_BLOCKED);
+          }
+        });
   }
 
-  //todo gamemode change lol
-  private void onLogout(final @NonNull Player player) {
+  @EventHandler
+  public void on(@SuppressWarnings("deprecation") final @NotNull AsyncPlayerChatEvent event) {
+    this.specManager.resolveSpec(event.getPlayer())
+        .ifPresent(spec -> spec.logger().logChat(event.getMessage()));
+  }
+
+  @EventHandler
+  public void on(final @NotNull PlayerGameModeChangeEvent event) {
+    //todo sdelat' potom
+  }
+
+  private void onLogout(final @NotNull Player player) {
     this.specManager.findSpec(player).ifPresent(spec -> {
       this.specManager.stop(spec);
 
