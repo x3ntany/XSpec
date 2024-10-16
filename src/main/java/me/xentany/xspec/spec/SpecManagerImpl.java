@@ -10,8 +10,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.Collections;
@@ -24,10 +24,10 @@ public final class SpecManagerImpl implements SpecManager {
   private static final double MAX_DISTANCE_SQUARED;
 
   static {
-    MAX_DISTANCE_SQUARED = Settings.IMP.MAIN.MAXIMUM_DISTANCE * Settings.IMP.MAIN.MAXIMUM_DISTANCE;
+    MAX_DISTANCE_SQUARED = Math.pow(Settings.IMP.MAIN.MAXIMUM_DISTANCE, 2);
   }
 
-  private final @NonNull Map<Player, Spec> specs;
+  private final Map<Player, Spec> specs;
 
   public SpecManagerImpl() {
     this.specs = new ConcurrentHashMap<>();
@@ -40,6 +40,8 @@ public final class SpecManagerImpl implements SpecManager {
           var suspectLocation = spec.suspect().getLocation();
           var spectatorLocation = spectator.getLocation();
 
+          spec.logger().logLocation();
+
           if (!spectatorLocation.getWorld().equals(suspectLocation.getWorld()) ||
               spectatorLocation.distanceSquared(suspectLocation) > MAX_DISTANCE_SQUARED) {
             Bukkit.getScheduler().runTask(plugin, () -> {
@@ -51,19 +53,19 @@ public final class SpecManagerImpl implements SpecManager {
   }
 
   @Override
-  public boolean isInSpec(final @NonNull Player player) {
+  public boolean isInSpec(final @NotNull Player player) {
     return this.specs.containsKey(player) ||
         this.specs.values().stream()
             .anyMatch(spec -> spec.suspect().equals(player));
   }
 
   @Override
-  public boolean isSpectator(final @NonNull Player player) {
+  public boolean isSpectator(final @NotNull Player player) {
     return this.specs.containsKey(player);
   }
 
   @Override
-  public boolean tryStart(final @NonNull Spec spec) {
+  public boolean tryStart(final @NotNull Spec spec) {
     var spectator = spec.spectator();
 
     if (!this.specs.containsKey(spectator)) {
@@ -80,7 +82,7 @@ public final class SpecManagerImpl implements SpecManager {
   }
 
   @Override
-  public void stop(final @NonNull Spec spec) {
+  public void stop(final @NotNull Spec spec) {
     var spectator = spec.spectator();
 
     var x = Settings.IMP.MAIN.TELEPORT_X;
@@ -102,6 +104,8 @@ public final class SpecManagerImpl implements SpecManager {
 
     DebugInfoUtil.showDebugInfo(spectator);
 
+    spec.logger().stop();
+
     this.specs.remove(spectator);
   }
 
@@ -111,7 +115,7 @@ public final class SpecManagerImpl implements SpecManager {
   }
 
   @Override
-  public Optional<Spec> findSpec(final @NonNull Player player) {
+  public Optional<Spec> findSpec(final @NotNull Player player) {
     return Optional.ofNullable(this.specs.get(player))
         .or(() -> this.specs.values().stream()
             .filter(spec -> spec.suspect().equals(player))
@@ -119,8 +123,13 @@ public final class SpecManagerImpl implements SpecManager {
   }
 
   @Override
+  public Optional<Spec> resolveSpec(final @NotNull Player spectator) {
+    return Optional.ofNullable(this.specs.get(spectator));
+  }
+
   @Contract(pure = true)
-  public @NonNull @UnmodifiableView Map<Player, Spec> getSpecs() {
+  @Override
+  public @NotNull @UnmodifiableView Map<Player, Spec> getSpecs() {
     return Collections.unmodifiableMap(this.specs);
   }
 }
