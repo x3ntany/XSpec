@@ -104,7 +104,7 @@ public final class SpecManagerImpl implements SpecManager {
 
     DebugInfoUtil.showDebugInfo(spectator);
 
-    spec.logger().stop();
+    ((SpecLoggerImpl) spec.logger()).stop();
 
     this.specs.remove(spectator);
   }
