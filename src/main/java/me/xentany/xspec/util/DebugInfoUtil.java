@@ -15,8 +15,8 @@ public final class DebugInfoUtil {
 
   public static void load() {
     if (Bukkit.getPluginManager().getPlugin("ProtocolLib") != null) {
-      protocolManager = ProtocolLibrary.getProtocolManager();
-      isProtocolLibAvailable = true;
+      DebugInfoUtil.protocolManager = ProtocolLibrary.getProtocolManager();
+      DebugInfoUtil.isProtocolLibAvailable = true;
     } else {
       SpecPlugin.getInstance().getLogger().warning("ProtocolLib not found. DebugInfoUtil will not function");
     }
