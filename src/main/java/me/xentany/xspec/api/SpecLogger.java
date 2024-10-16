@@ -8,5 +8,4 @@ public interface SpecLogger {
   void logChat(final @NotNull String message);
   void logCommand(final @NotNull String message);
   void logLocation();
-  void stop();
 }
