@@ -66,7 +66,7 @@ public final class Settings extends YamlConfig {
       public String NO_SPECTATE_SPECTATOR = "You cannot spectate a player who is already spectating.";
       public String STARTED = "You are now spectating {0}. Date: {1}";
       public String ALREADY_STARTED = "You are already spectating someone.";
-      public String WORLD_NOT_FOUND = "&4 The world for teleportation could not be found. Please contact an administrator.";
+      public String WORLD_NOT_FOUND = "&4The world for teleportation could not be found. Please contact an administrator.";
       public String STOPPED = "You have stopped spectating. Date: {0}";
       public String NOT_SPECTATING = "You are not currently spectating anyone.";
       public String SUSPECT_LEFT = "The player you were spectating has left the server.";
