@@ -10,27 +10,30 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.framework.qual.DefaultQualifier;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.stream.Stream;
 
-@DefaultQualifier(NonNull.class)
-public final class SpecCommand implements CommandExecutor {
+public final class SpecCommand implements CommandExecutor, TabCompleter {
 
-  private final @NonNull SpecManager specManager;
+  private final SpecManager specManager;
 
   public SpecCommand() {
     this.specManager = SpecPlugin.getInstance().getSpecManager();
   }
 
   @Override
-  public boolean onCommand(final @NonNull CommandSender sender,
-                           final @NonNull Command command,
-                           final @NonNull String label,
-                           final @NonNull String[] args) {
+  public boolean onCommand(final @NotNull CommandSender sender,
+                           final @NotNull Command command,
+                           final @NotNull String label,
+                           final @NotNull String[] args) {
     if (!(sender instanceof final Player spectator)) {
       return true;
     }
@@ -62,7 +65,6 @@ public final class SpecCommand implements CommandExecutor {
               var spec = Spec.builder()
                   .spectator(spectator)
                   .suspect(suspect)
-                  .timestamp(System.currentTimeMillis())
                   .build();
 
               if (specManager.tryStart(spec)) {
@@ -86,13 +88,24 @@ public final class SpecCommand implements CommandExecutor {
           () -> MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.NOT_SPECTATING)
       );
 
-      default -> {
-        spectator.sendMessage("unknown"); //todo fixed
-      }
-      //todo afk check
-      //todo tab complete
+      default -> MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.UNKNOWN_SUBCOMMAND);
     }
 
     return true;
+  }
+
+  //todo afk check
+  @Contract(pure = true)
+  @Override
+  public @Unmodifiable @NotNull List<String> onTabComplete(final @NotNull CommandSender sender,
+                                                           final @NotNull Command command,
+                                                           final @NotNull String alias,
+                                                           final String @NotNull [] args) {
+    return !(sender instanceof Player) ? List.of() : args.length == 1 ? Stream.of("go", "off")
+        .filter(subcommand -> subcommand.startsWith(args[0].toLowerCase(Locale.ROOT)))
+        .toList() : args.length == 2 && args[0].equalsIgnoreCase("go") ? Bukkit.getOnlinePlayers().stream()
+        .map(Player::getName)
+        .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(args[1].toLowerCase(Locale.ROOT)))
+        .toList() : List.of();
   }
 }
