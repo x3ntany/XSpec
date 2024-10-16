@@ -34,6 +34,8 @@ public final class Settings extends YamlConfig {
 
     @Comment("Maximum distance in blocks at which a spectator can fly away.")
     public double MAXIMUM_DISTANCE = 25.0d;
+
+    @Comment("Recommend second precision for log naming.")
     public String DATE_PATTERN = "dd.MM.yyyy - HH:mm:ss";
 
     @Comment({
@@ -44,7 +46,7 @@ public final class Settings extends YamlConfig {
         "Asia/Tokyo - Japan Standard Time.",
         "For more time zones, refer to: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones"
     })
-    public String TIME_ZONE = "UTC";
+    public String TIME_ZONE = "Europe/Moscow";
 
     public List<String> BLOCKED_COMMANDS = List.of("/sethome", "/setwarp");
 
@@ -54,6 +56,7 @@ public final class Settings extends YamlConfig {
     public static final class MESSAGES {
 
       public String USAGE = "Command help:{NL}/spec go (Nickname){NL}/spec off";
+      public String UNKNOWN_SUBCOMMAND = "Unknown subcommand.";
       public String SPECIFY = "Please specify the suspect's nickname.";
       public String SUSPECT_NOT_FOUND = "The player could not be found.";
       public String CANNOT_SPECTATE_SELF = "You cannot spectate yourself.";
