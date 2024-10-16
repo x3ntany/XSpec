@@ -18,6 +18,7 @@ public final class SpecPlugin extends JavaPlugin {
   private static SpecPlugin instance;
   private SpecManager specManager;
 
+  //webhook check
   @Override
   public void onEnable() {
     SpecPlugin.instance = this;
