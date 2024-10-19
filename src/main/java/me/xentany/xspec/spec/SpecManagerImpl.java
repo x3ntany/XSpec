@@ -69,13 +69,14 @@ public final class SpecManagerImpl implements SpecManager {
     var spectator = spec.spectator();
 
     if (!this.specs.containsKey(spectator)) {
+      spectator.setGameMode(GameMode.SPECTATOR);
+
       this.specs.put(spectator, spec);
 
       spectator.showBossBar(spec.specBar().bossBar());
 
       DebugInfoUtil.hideDebugInfo(spectator);
 
-      spectator.setGameMode(GameMode.SPECTATOR);
       spectator.teleportAsync(spec.suspect().getLocation());
       return true;
     } else {
