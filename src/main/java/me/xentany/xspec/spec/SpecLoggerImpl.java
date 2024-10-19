@@ -19,39 +19,39 @@ public final class SpecLoggerImpl implements SpecLogger {
 
   private final SpecPlugin plugin;
   private final Logger logger;
-  private final Player player;
+  private final Player spectator;
   private final String startTime;
   private final Path logFilePath;
   private BufferedWriter writer;
 
-  public SpecLoggerImpl(final Player player) {
+  public SpecLoggerImpl(final @NotNull Player spectator, @NotNull final Player suspect) {
     this.plugin = SpecPlugin.getInstance();
     this.logger = plugin.getLogger();
-    this.player = player;
+    this.spectator = spectator;
     this.startTime = DateFormatUtil.getFormattedDate();
-    this.logFilePath = this.createLogFile(player);
+    this.logFilePath = this.createLogFile(spectator, suspect);
 
     try {
       this.writer = Files.newBufferedWriter(this.logFilePath);
       this.log("Started spectating at: " + startTime);
     } catch (final IOException e) {
-      this.logger.log(Level.SEVERE, "Failed to initialize log file for " + player.getName(), e);
+      this.logger.log(Level.SEVERE, "Failed to initialize log file for " + spectator.getName(), e);
     }
   }
 
-  private Path createLogFile(final @NotNull Player player) {
-    var logsDir = this.plugin.getDataFolder().toPath().resolve(Paths.get("logs", player.getName()));
+  private Path createLogFile(final @NotNull Player spectator, final @NotNull Player suspect) {
+    var logsDir = this.plugin.getDataFolder().toPath().resolve(Paths.get("logs", spectator.getName()));
 
     try {
       if (Files.notExists(logsDir)) {
         Files.createDirectories(logsDir);
       }
     } catch (final IOException e) {
-      this.logger.log(Level.SEVERE, "Failed to create log directory for " + player.getName(), e);
+      this.logger.log(Level.SEVERE, "Failed to create log directory for " + spectator.getName(), e);
     }
 
     return getUniqueFilePath(
-        logsDir.resolve(this.startTime.replace(":", "-") + ".log")
+        logsDir.resolve(this.startTime.replace(":", "-") + "-" + suspect.getName() + ".log")
     );
   }
 
@@ -75,7 +75,7 @@ public final class SpecLoggerImpl implements SpecLogger {
       this.writer.newLine();
       this.writer.flush();
     } catch (final IOException e) {
-      this.logger.log(Level.SEVERE, "Failed to write to log file for " + player.getName(), e);
+      this.logger.log(Level.SEVERE, "Failed to write to log file for " + spectator.getName(), e);
     }
   }
   @Override
@@ -90,8 +90,8 @@ public final class SpecLoggerImpl implements SpecLogger {
 
   @Override
   public void logLocation() {
-    if (player.isOnline()) {
-      var location = player.getLocation();
+    if (spectator.isOnline()) {
+      var location = spectator.getLocation();
       this.log(
           String.format("Location: X: %.2f, Y: %.2f, Z: %.2f, World: %s",
               location.getX(),
@@ -111,7 +111,7 @@ public final class SpecLoggerImpl implements SpecLogger {
         this.writer.close();
       }
     } catch (final IOException e) {
-      this.logger.log(Level.SEVERE, "Failed to close log file for " + player.getName(), e);
+      this.logger.log(Level.SEVERE, "Failed to close log file for " + spectator.getName(), e);
     }
 
     try {
@@ -122,7 +122,7 @@ public final class SpecLoggerImpl implements SpecLogger {
 
       Files.move(logFilePath, newFilePath);
     } catch (final IOException e) {
-      this.logger.log(Level.SEVERE, "Failed to rename log file for " + player.getName(), e);
+      this.logger.log(Level.SEVERE, "Failed to rename log file for " + spectator.getName(), e);
     }
   }
 }
