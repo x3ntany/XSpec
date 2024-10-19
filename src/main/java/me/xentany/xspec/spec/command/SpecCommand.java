@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -50,6 +51,13 @@ public final class SpecCommand implements CommandExecutor, TabCompleter {
           return true;
         }
 
+        var needReason = Settings.IMP.MAIN.NEED_REASON;
+
+        if (needReason && args.length < 3) {
+          MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.SPECIFY_REASON);
+          return true;
+        }
+
         Optional.ofNullable(Bukkit.getPlayer(args[1])).ifPresentOrElse(
             suspect -> {
               if (suspect == spectator) {
@@ -62,11 +70,16 @@ public final class SpecCommand implements CommandExecutor, TabCompleter {
                 return;
               }
 
+              var reason = needReason ? String.join(" ", Arrays.copyOfRange(args, 2, args.length)).trim() : null;
               var spec = Spec.builder(spectator, suspect).build();
 
               if (specManager.tryStart(spec)) {
+                if (reason != null) {
+                  spec.logger().log("Reason: " + reason);
+                }
+
                 MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.STARTED,
-                    suspect.getName(),
+                    suspect.getName(  ),
                     DateFormatUtil.getFormattedDate()
                 );
               } else {
