@@ -4,10 +4,7 @@ import me.xentany.xspec.api.SpecManager;
 import me.xentany.xspec.spec.command.SpecCommand;
 import me.xentany.xspec.spec.listener.SpecHandler;
 import me.xentany.xspec.spec.SpecManagerImpl;
-import me.xentany.xspec.util.DateFormatUtil;
-import me.xentany.xspec.util.DebugInfoUtil;
-import me.xentany.xspec.util.MessageUtil;
-import me.xentany.xspec.util.Metrics;
+import me.xentany.xspec.util.*;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -17,6 +14,7 @@ public final class SpecPlugin extends JavaPlugin {
 
   private static SpecPlugin instance;
   private SpecManager specManager;
+  private LatestVersionFetcher laterVersionFetcher;
 
   @Override
   public void onEnable() {
@@ -36,11 +34,34 @@ public final class SpecPlugin extends JavaPlugin {
     if (Settings.IMP.MAIN.BSTATS) {
       new Metrics(this, 23644);
     }
+
+    this.laterVersionFetcher = new LatestVersionFetcher("x3ntany", "XSpec");
+    this.startCheckingForUpdates();
   }
 
   @Override
   public void onDisable() {
     this.specManager.stopAll();
+  }
+
+  private void startCheckingForUpdates() {
+    if (Settings.IMP.MAIN.CHECK_FOR_UPDATES) {
+      Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+        getLogger().info("Checking for updates...");
+
+        this.laterVersionFetcher.resolve(false)
+            .thenAccept(optionalVersion -> optionalVersion.ifPresentOrElse(latestVersion ->
+                getLogger().info(!latestVersion.equals(getDescription().getVersion())
+                    ? "New version is available: " + latestVersion
+                    : "You're using the latest version"),
+                () -> getLogger().info("Couldn't retrieve the latest version"))
+            )
+            .exceptionally(e -> {
+              getLogger().severe("Error while checking updates: " + e.getMessage());
+              return null;
+            });
+      }, 0L, 288000L);
+    }
   }
 
   public static SpecPlugin getInstance() {
@@ -49,5 +70,9 @@ public final class SpecPlugin extends JavaPlugin {
 
   public SpecManager getSpecManager() {
     return this.specManager;
+  }
+
+  public LatestVersionFetcher getLaterVersionFetcher() {
+    return this.laterVersionFetcher;
   }
 }
