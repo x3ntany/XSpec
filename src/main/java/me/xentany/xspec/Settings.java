@@ -2,6 +2,7 @@ package me.xentany.xspec;
 
 import net.elytrium.commons.config.YamlConfig;
 import net.elytrium.commons.kyori.serialization.Serializers;
+import net.kyori.adventure.bossbar.BossBar;
 
 import java.util.List;
 
@@ -23,17 +24,33 @@ public final class Settings extends YamlConfig {
   @Create
   public MAIN MAIN;
 
-  @Comment("Don't use \\n, use {NL} for new line.")
   public static class MAIN {
 
     @Comment("Lightweight and anonymous. Please keep enabled to support the author.")
     public boolean BSTATS = true;
+
+    @Comment({
+        "Highly optimized and stress-tested update checker.",
+        "Please keep enabled to always stay up to date with the latest version."
+    })
+    public boolean CHECK_FOR_UPDATES = true;
+
+    @Comment({
+        "after the player's nickname in the command you must enter the reason,",
+        "which will be stored in the logs"
+    })
+    public boolean NEED_REASON = false;
+    public boolean OFF_SPEC_ON_GAMEMODE_CHANGE = true;
 
     @Comment("World and coordinates where player teleports to after a stop spec.")
     public String TELEPORT_WORLD_NAME = "world";
     public double TELEPORT_X = 0.5d;
     public double TELEPORT_Y = 90.0d;
     public double TELEPORT_Z = 0.5d;
+
+    public String BAR_NAME = "&6Spectating behind player {0}";
+    public BossBar.Color BAR_COLOR = BossBar.Color.WHITE;
+    public BossBar.Overlay BAR_OVERLAY = BossBar.Overlay.PROGRESS;
 
     @Comment("Maximum distance in blocks at which a spectator can fly away.")
     public double MAXIMUM_DISTANCE = 25.0d;
@@ -56,6 +73,10 @@ public final class Settings extends YamlConfig {
     @Create
     public MESSAGES MESSAGES;
 
+    @Comment({
+        "Don't use \\n, use {NL} for new line.",
+        "If the message is empty, it will not be sent."
+    })
     public static final class MESSAGES {
 
       public String USAGE = "Command help:{NL}/spec go (Nickname){NL}/spec off";
@@ -67,11 +88,13 @@ public final class Settings extends YamlConfig {
       public String STARTED = "You are now spectating {0}. Date: {1}";
       public String ALREADY_STARTED = "You are already spectating someone.";
       public String WORLD_NOT_FOUND = "&4The world for teleportation could not be found. Please contact an administrator.";
-      public String STOPPED = "You have stopped spectating. Date: {0}";
+      public String STOPPED = "You have stopped spectating. Date: {0}, Suspect: {1}";
       public String NOT_SPECTATING = "You are not currently spectating anyone.";
-      public String SUSPECT_LEFT = "The player you were spectating has left the server.";
+      public String SUSPECT_LEFT = "The player you were spectating ({0}) has left the server. Date: {1}";
       public String TOO_FAR = "You cannot move too far away while spectating.";
       public String COMMAND_BLOCKED = "You cannot use this command while spectating.";
+      public String CANNOT_CHANGE_GAMEMODE = "You can't change the gamemode during the spectating.";
+      public String STOPPED_BY_GAMEMODE_CHANGE = "Spectating stopped by changing the game mode. Date: {0}, Suspect: {1}";
     }
   }
 }
