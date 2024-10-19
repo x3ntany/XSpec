@@ -20,6 +20,7 @@ public final class SpecLoggerImpl implements SpecLogger {
   private final SpecPlugin plugin;
   private final Logger logger;
   private final Player spectator;
+  private final Player suspect;
   private final String startTime;
   private final Path logFilePath;
   private BufferedWriter writer;
@@ -28,6 +29,7 @@ public final class SpecLoggerImpl implements SpecLogger {
     this.plugin = SpecPlugin.getInstance();
     this.logger = plugin.getLogger();
     this.spectator = spectator;
+    this.suspect = suspect;
     this.startTime = DateFormatUtil.getFormattedDate();
     this.logFilePath = this.createLogFile(spectator, suspect);
 
@@ -116,7 +118,9 @@ public final class SpecLoggerImpl implements SpecLogger {
 
     try {
       var endTime = DateFormatUtil.getFormattedDate().replace(":", "-");
-      var newFilePath = logFilePath.getParent().resolve(startTime.replace(":", "-") + " - " + endTime + ".log");
+      var newFilePath = logFilePath.getParent().resolve(
+          startTime.replace(":", "-") + " - " + endTime + " - " + suspect.getName() + ".log"
+      );
 
       newFilePath = getUniqueFilePath(newFilePath);
 
