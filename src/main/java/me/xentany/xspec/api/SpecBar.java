@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("unused") //api lol
 public interface SpecBar {
 
   Component name();
