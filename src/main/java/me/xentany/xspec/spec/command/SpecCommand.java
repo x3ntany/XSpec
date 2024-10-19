@@ -62,10 +62,7 @@ public final class SpecCommand implements CommandExecutor, TabCompleter {
                 return;
               }
 
-              var spec = Spec.builder()
-                  .spectator(spectator)
-                  .suspect(suspect)
-                  .build();
+              var spec = Spec.builder(spectator, suspect).build();
 
               if (specManager.tryStart(spec)) {
                 MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.STARTED,
@@ -83,7 +80,11 @@ public final class SpecCommand implements CommandExecutor, TabCompleter {
       case "off" -> this.specManager.findSpec(spectator).ifPresentOrElse(
           spec -> {
             this.specManager.stop(spec);
-            MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.STOPPED, DateFormatUtil.getFormattedDate());
+
+            MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.STOPPED,
+                DateFormatUtil.getFormattedDate(),
+                spec.suspect().getName()
+            );
           },
           () -> MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.NOT_SPECTATING)
       );
