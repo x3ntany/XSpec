@@ -71,6 +71,8 @@ public final class SpecManagerImpl implements SpecManager {
     if (!this.specs.containsKey(spectator)) {
       this.specs.put(spectator, spec);
 
+      spectator.showBossBar(spec.specBar().bossBar());
+
       DebugInfoUtil.hideDebugInfo(spectator);
 
       spectator.setGameMode(GameMode.SPECTATOR);
@@ -90,17 +92,15 @@ public final class SpecManagerImpl implements SpecManager {
     var z = Settings.IMP.MAIN.TELEPORT_Z;
 
     Optional.ofNullable(Bukkit.getWorld(Settings.IMP.MAIN.TELEPORT_WORLD_NAME)).ifPresentOrElse(
-        world -> {
-          spectator.teleportAsync(new Location(world, x, y, z));
-          spectator.setGameMode(GameMode.SURVIVAL);
-        },
+        world -> spectator.teleportAsync(new Location(world, x, y, z)),
         () -> {
           spectator.teleportAsync(new Location(spectator.getWorld(), x, y, z));
-          spectator.setGameMode(GameMode.SURVIVAL);
-
           MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.WORLD_NOT_FOUND);
         }
     );
+
+    spectator.setGameMode(GameMode.SURVIVAL);
+    spectator.hideBossBar(spec.specBar().bossBar());
 
     DebugInfoUtil.showDebugInfo(spectator);
 
