@@ -22,7 +22,7 @@ public final class SpecPlugin extends JavaPlugin {
     Settings.IMP.reload(this.getDataFolder().toPath().resolve("config.yml").toFile());
 
     DateFormatUtil.load();
-    DebugInfoUtil.load();
+    ProtocolLibUtil.load();
     MessageUtil.load();
 
     this.specManager = new SpecManagerImpl();
@@ -42,6 +42,7 @@ public final class SpecPlugin extends JavaPlugin {
   @Override
   public void onDisable() {
     this.specManager.stopAll();
+    ProtocolLibUtil.shutdown();
   }
 
   private void startCheckingForUpdates() {
