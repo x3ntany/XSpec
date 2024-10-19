@@ -36,7 +36,7 @@ public final class Settings extends YamlConfig {
     public boolean CHECK_FOR_UPDATES = true;
 
     @Comment({
-        "after the player's nickname in the command you must enter the reason,",
+        "After the player's nickname in the command you must enter the reason,",
         "which will be stored in the logs"
     })
     public boolean NEED_REASON = false;
@@ -79,9 +79,10 @@ public final class Settings extends YamlConfig {
     })
     public static final class MESSAGES {
 
-      public String USAGE = "Command help:{NL}/spec go (Nickname){NL}/spec off";
+      public String USAGE = "Command help:{NL}/spec go (Nickname) [?Reason]{NL}/spec off";
       public String UNKNOWN_SUBCOMMAND = "Unknown subcommand.";
       public String SPECIFY = "Please specify the suspect's nickname.";
+      public String SPECIFY_REASON = "Please specify the reason.";
       public String SUSPECT_NOT_FOUND = "The player could not be found.";
       public String CANNOT_SPECTATE_SELF = "You cannot spectate yourself.";
       public String NO_SPECTATE_SPECTATOR = "You cannot spectate a player who is already spectating.";
