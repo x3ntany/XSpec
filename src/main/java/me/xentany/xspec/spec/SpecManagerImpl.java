@@ -100,7 +100,6 @@ public final class SpecManagerImpl implements SpecManager {
         }
     );
 
-    spectator.setGameMode(GameMode.SURVIVAL);
     spectator.hideBossBar(spec.specBar().bossBar());
 
     DebugInfoUtil.showDebugInfo(spectator);
@@ -108,6 +107,8 @@ public final class SpecManagerImpl implements SpecManager {
     ((SpecLoggerImpl) spec.logger()).stop();
 
     this.specs.remove(spectator);
+
+    spectator.setGameMode(GameMode.SURVIVAL);
   }
 
   @Override
