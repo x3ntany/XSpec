@@ -4,7 +4,7 @@ import me.xentany.xspec.Settings;
 import me.xentany.xspec.SpecPlugin;
 import me.xentany.xspec.api.Spec;
 import me.xentany.xspec.api.SpecManager;
-import me.xentany.xspec.util.DebugInfoUtil;
+import me.xentany.xspec.util.ProtocolLibUtil;
 import me.xentany.xspec.util.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -75,7 +75,8 @@ public final class SpecManagerImpl implements SpecManager {
 
       spectator.showBossBar(spec.specBar().bossBar());
 
-      DebugInfoUtil.hideDebugInfo(spectator);
+      ProtocolLibUtil.hideDebugInfo(spectator);
+      ProtocolLibUtil.addGlowingRelation(spec.suspect(), spectator);
 
       spectator.teleportAsync(spec.suspect().getLocation());
       return true;
@@ -102,7 +103,8 @@ public final class SpecManagerImpl implements SpecManager {
 
     spectator.hideBossBar(spec.specBar().bossBar());
 
-    DebugInfoUtil.showDebugInfo(spectator);
+    ProtocolLibUtil.showDebugInfo(spectator);
+    ProtocolLibUtil.removeGlowingRelation(spec.suspect(), spectator);
 
     ((SpecLoggerImpl) spec.logger()).stop();
 
