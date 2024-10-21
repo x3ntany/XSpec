@@ -76,7 +76,10 @@ public final class SpecManagerImpl implements SpecManager {
       spectator.showBossBar(spec.specBar().bossBar());
 
       ProtocolLibUtil.hideDebugInfo(spectator);
-      ProtocolLibUtil.addGlowingRelation(spec.suspect(), spectator);
+
+      if (Settings.IMP.MAIN.SUSPECT_GLOW) {
+        ProtocolLibUtil.addGlowingRelation(spec.suspect(), spectator);
+      }
 
       spectator.teleportAsync(spec.suspect().getLocation());
       return true;
