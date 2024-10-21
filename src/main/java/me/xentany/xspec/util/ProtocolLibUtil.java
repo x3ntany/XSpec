@@ -13,13 +13,24 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.stream.Collectors;
 
 public final class ProtocolLibUtil {
 
-  private static final Map<UUID, Set<UUID>> GLOWING_RELATIONS = new HashMap<>();
-  private static final ThreadLocal<Boolean> PACKET_SENDING = ThreadLocal.withInitial(() -> false);
+  private static final ConcurrentMap<UUID, Set<UUID>> GLOWING_RELATIONS;
+  private static final ConcurrentMap<UUID, WrappedDataWatcher> WATCHERS;
+
+  static {
+    GLOWING_RELATIONS = new ConcurrentHashMap<>();
+    WATCHERS = new ConcurrentHashMap<>();
+  }
+
   private static ProtocolManager protocolManager;
   private static PacketAdapter glowingPacketListener;
   private static boolean isProtocolLibAvailable = false;
@@ -28,84 +39,83 @@ public final class ProtocolLibUtil {
     var plugin = SpecPlugin.getInstance();
 
     if (Bukkit.getPluginManager().getPlugin("ProtocolLib") != null) {
-      protocolManager = ProtocolLibrary.getProtocolManager();
-      isProtocolLibAvailable = true;
-
-      protocolManager.addPacketListener(glowingPacketListener = new PacketAdapter(plugin, ListenerPriority.NORMAL, PacketType.Play.Server.ENTITY_METADATA) {
+      ProtocolLibUtil.protocolManager = ProtocolLibrary.getProtocolManager();
+      ProtocolLibUtil.isProtocolLibAvailable = true;
+      ProtocolLibUtil.glowingPacketListener = new PacketAdapter(plugin, ListenerPriority.NORMAL, PacketType.Play.Server.ENTITY_METADATA) {
 
         @Override
-        public void onPacketSending(PacketEvent event) {
-          if (event.getPlayer() == null || event.getPacket() == null) {
-            return;
-          }
-
-          if (PACKET_SENDING.get()) {
-            return;
-          }
-
+        public void onPacketSending(final PacketEvent event) {
           var target = event.getPlayer();
-          var viewers = getViewers(target);
 
-          if (!viewers.isEmpty()) {
-            sendGlowingPacket(target, viewers, true);
+          if (target != null && isGlowingForAny(target)) {
+            var viewers = getViewers(target);
+
+            if (!viewers.isEmpty()) {
+              ProtocolLibUtil.sendGlowingPacket(target, viewers, true);
+            }
           }
         }
-      });
+      };
+
+      ProtocolLibUtil.protocolManager.addPacketListener(ProtocolLibUtil.glowingPacketListener);
     } else {
-      plugin.getLogger().warning("ProtocolLib not found. DebugInfoUtil will not function");
+      plugin.getLogger().warning("ProtocolLib not found. ProtocolLibUtil will not function");
     }
   }
 
-  public static void shutdown() {
-    if (isProtocolLibAvailable && glowingPacketListener != null) {
-      protocolManager.removePacketListener(glowingPacketListener);
-      glowingPacketListener = null;
+  private static void sendReducedDebugInfoPacket(final @NotNull Player player, final boolean hideDebugInfo) {
+    if (ProtocolLibUtil.isProtocolLibAvailable) {
+      var packet = ProtocolLibUtil.protocolManager.createPacket(PacketType.Play.Server.ENTITY_STATUS);
+
+      packet.getIntegers().write(0, player.getEntityId());
+      packet.getBytes().write(0, hideDebugInfo ? (byte) 22 : (byte) 23);
+
+      ProtocolLibUtil.protocolManager.sendServerPacket(player, packet);
     }
+  }
+
+  public static void hideDebugInfo(final @NotNull Player player) {
+    ProtocolLibUtil.sendReducedDebugInfoPacket(player, true);
+  }
+
+  public static void showDebugInfo(final @NotNull Player player) {
+    ProtocolLibUtil.sendReducedDebugInfoPacket(player, false);
   }
 
   public static void addGlowingRelation(final @NotNull Player target, final @NotNull Player viewer) {
-    if (isProtocolLibAvailable) {
-      GLOWING_RELATIONS.computeIfAbsent(target.getUniqueId(), k -> new HashSet<>()).add(viewer.getUniqueId());
-      sendGlowingPacket(target, Collections.singletonList(viewer), true);
+    if (ProtocolLibUtil.isProtocolLibAvailable) {
+      ProtocolLibUtil.GLOWING_RELATIONS.computeIfAbsent(target.getUniqueId(), k ->
+          new CopyOnWriteArraySet<>()).add(viewer.getUniqueId()
+      );
+      ProtocolLibUtil.sendGlowingPacket(target, Set.of(viewer), true);
     }
   }
 
   public static void removeGlowingRelation(final @NotNull Player target, final @NotNull Player viewer) {
-    if (isProtocolLibAvailable) {
-      var viewers = GLOWING_RELATIONS.get(target.getUniqueId());
+    if (ProtocolLibUtil.isProtocolLibAvailable) {
+      var viewers = ProtocolLibUtil.GLOWING_RELATIONS.get(target.getUniqueId());
 
-      if (viewers != null) {
-        viewers.remove(viewer.getUniqueId());
-
+      if (viewers != null && viewers.remove(viewer.getUniqueId())) {
         if (viewers.isEmpty()) {
-          GLOWING_RELATIONS.remove(target.getUniqueId());
+          ProtocolLibUtil.GLOWING_RELATIONS.remove(target.getUniqueId());
+          ProtocolLibUtil.WATCHERS.remove(target.getUniqueId());
         }
 
-        sendGlowingPacket(target, Collections.singletonList(viewer), false);
+        ProtocolLibUtil.sendGlowingPacket(target, Set.of(viewer), false);
       }
     }
   }
 
-  public static void sendGlowingPacket(final @NotNull Player target,
-                                       final @NotNull Collection<? extends Player> viewers,
-                                       final boolean glowing) {
-    if (PACKET_SENDING.get()) {
-      return;
-    }
-
-
-    PACKET_SENDING.set(true);
-
-    try {
-      var packet = protocolManager.createPacket(PacketType.Play.Server.ENTITY_METADATA);
-
-      packet.getIntegers().write(0, target.getEntityId());
-
-      var watcher = new WrappedDataWatcher();
+  private static void sendGlowingPacket(final @NotNull Player target,
+                                        final @NotNull Set<Player> viewers,
+                                        final boolean glowing) {
+    if (ProtocolLibUtil.isProtocolLibAvailable) {
+      var watcher = ProtocolLibUtil.WATCHERS.computeIfAbsent(target.getUniqueId(), uuid ->
+          new WrappedDataWatcher(target)
+      );
       var flagsObject = new WrappedDataWatcherObject(0, WrappedDataWatcher.Registry.get(Byte.class));
-      int index = flagsObject.getIndex();
-      var flagObject = watcher.getByte(index);
-      byte flags = (flagObject != null) ? flagObject : 0;
+      var currentFlags = watcher.getByte(0);
+      byte flags = (currentFlags != null) ? currentFlags : 0;
 
       if (glowing) {
         flags |= 64;
@@ -113,89 +123,39 @@ public final class ProtocolLibUtil {
         flags &= -65;
       }
 
-      watcher.setObject(flagsObject, flags);
+      if (currentFlags == null || currentFlags != flags) {
+        watcher.setObject(flagsObject, flags);
+      }
+
+      var packet = ProtocolLibUtil.protocolManager.createPacket(PacketType.Play.Server.ENTITY_METADATA);
+
+      packet.getIntegers().write(0, target.getEntityId());
       packet.getWatchableCollectionModifier().write(0, watcher.getWatchableObjects());
 
-      viewers.forEach(viewer -> {
-        if (!viewer.equals(target)) {
-          protocolManager.sendServerPacket(viewer, packet.deepClone());
-        }
-      });
-    } finally {
-      PACKET_SENDING.set(false);
+      viewers.stream()
+          .filter(viewer -> !viewer.equals(target))
+          .forEach(viewer -> ProtocolLibUtil.protocolManager.sendServerPacket(viewer, packet));
     }
   }
 
-  private static void sendReducedDebugInfoPacket(final @NotNull Player player, final boolean hideDebugInfo) {
-    if (isProtocolLibAvailable) {
-      var packet = protocolManager.createPacket(PacketType.Play.Server.ENTITY_STATUS);
-
-      packet.getIntegers().write(0, player.getEntityId());
-      packet.getBytes().write(0, (byte) (hideDebugInfo ? 22 : 23));
-
-      protocolManager.sendServerPacket(player, packet);
+  public static void shutdown() {
+    if (ProtocolLibUtil.isProtocolLibAvailable &&
+        ProtocolLibUtil.glowingPacketListener != null) {
+      ProtocolLibUtil.protocolManager.removePacketListener(ProtocolLibUtil.glowingPacketListener);
     }
   }
 
-  public static @NotNull Set<Player> getViewers(final @NotNull Player target) {
-    var viewerUUIDs = GLOWING_RELATIONS.get(target.getUniqueId());
+  public static boolean isGlowingForAny(final @NotNull Player target) {
+    var viewers = ProtocolLibUtil.GLOWING_RELATIONS.get(target.getUniqueId());
+    return viewers != null && !viewers.isEmpty();
+  }
 
-    if (viewerUUIDs == null) {
-      return Collections.emptySet();
-    }
+  private static @NotNull Set<Player> getViewers(final @NotNull Player target) {
+    var viewerUniqueIds = GLOWING_RELATIONS.get(target.getUniqueId());
 
-    return viewerUUIDs.stream()
+    return viewerUniqueIds == null || viewerUniqueIds.isEmpty() ? Set.of() : viewerUniqueIds.stream()
         .map(Bukkit::getPlayer)
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
-  }
-
-  public static void hideDebugInfo(final @NotNull Player player) {
-    if (isProtocolLibAvailable) {
-      sendReducedDebugInfoPacket(player, true);
-    }
-  }
-
-  public static void showDebugInfo(final @NotNull Player player) {
-    if (isProtocolLibAvailable) {
-      sendReducedDebugInfoPacket(player, false);
-    }
-  }
-
-  public static void removeAllGlowingRelations(final @NotNull Player player) {
-    if (isProtocolLibAvailable) {
-      var playerUniqueId = player.getUniqueId();
-      var viewers = GLOWING_RELATIONS.remove(playerUniqueId);
-
-      if (viewers != null && !viewers.isEmpty()) {
-        sendGlowingPacket(player, getPlayersFromUUIDs(viewers), false);
-      }
-
-      new HashMap<>(GLOWING_RELATIONS).entrySet().stream()
-          .filter(entry -> entry.getValue().remove(playerUniqueId))
-          .forEach(entry -> {
-            var target = Bukkit.getPlayer(entry.getKey());
-
-            if (target != null) {
-              sendGlowingPacket(target, Collections.singletonList(player), false);
-            }
-
-            if (entry.getValue().isEmpty()) {
-              GLOWING_RELATIONS.remove(entry.getKey());
-            }
-          });
-    }
-  }
-
-  private static Collection<Player> getPlayersFromUUIDs(final @NotNull Collection<UUID> uuids) {
-    return uuids.stream()
-        .map(Bukkit::getPlayer)
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-  }
-
-  private static boolean isGlowingFor(final @NotNull Player target, final @NotNull Player viewer) {
-    var viewers = GLOWING_RELATIONS.get(target.getUniqueId());
-    return viewers != null && viewers.contains(viewer.getUniqueId());
   }
 }
