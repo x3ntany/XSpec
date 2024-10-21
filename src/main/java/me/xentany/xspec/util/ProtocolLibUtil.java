@@ -132,9 +132,7 @@ public final class ProtocolLibUtil {
       packet.getIntegers().write(0, target.getEntityId());
       packet.getWatchableCollectionModifier().write(0, watcher.getWatchableObjects());
 
-      viewers.stream()
-          .filter(viewer -> !viewer.equals(target))
-          .forEach(viewer -> ProtocolLibUtil.protocolManager.sendServerPacket(viewer, packet));
+      viewers.forEach(viewer -> ProtocolLibUtil.protocolManager.sendServerPacket(viewer, packet));
     }
   }
 
