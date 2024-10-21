@@ -70,14 +70,11 @@ public final class SpecCommand implements CommandExecutor, TabCompleter {
                 return;
               }
 
-              var reason = needReason ? String.join(" ", Arrays.copyOfRange(args, 2, args.length)).trim() : null;
-              var spec = Spec.builder(spectator, suspect).build();
+              var spec = Spec.builder(spectator, suspect)
+                  .reason(needReason ? String.join(" ", Arrays.copyOfRange(args, 2, args.length)).trim() : null)
+                  .build();
 
               if (specManager.tryStart(spec)) {
-                if (reason != null) {
-                  spec.logger().log("Reason: " + reason);
-                }
-
                 MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.STARTED,
                     suspect.getName(  ),
                     DateFormatUtil.getFormattedDate()
