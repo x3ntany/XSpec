@@ -77,11 +77,16 @@ public final class SpecManagerImpl implements SpecManager {
 
       ProtocolLibUtil.hideDebugInfo(spectator);
 
+      spectator.teleportAsync(spec.suspect().getLocation());
+
       if (Settings.IMP.MAIN.SUSPECT_GLOW) {
         ProtocolLibUtil.addGlowingRelation(spec.suspect(), spectator);
       }
 
-      spectator.teleportAsync(spec.suspect().getLocation());
+      //if (Settings.IMP.MAIN.NIGHT_VISION) {
+      //  ProtocolLibUtil.addNightVision(spectator);
+      //}
+      //uuups troblle
       return true;
     } else {
       return false;
@@ -108,6 +113,7 @@ public final class SpecManagerImpl implements SpecManager {
 
     ProtocolLibUtil.showDebugInfo(spectator);
     ProtocolLibUtil.removeGlowingRelation(spec.suspect(), spectator);
+    //ProtocolLibUtil.removeNightVision(spectator);
 
     ((SpecLoggerImpl) spec.logger()).stop();
 
