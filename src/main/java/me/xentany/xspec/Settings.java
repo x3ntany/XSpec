@@ -41,6 +41,7 @@ public final class Settings extends YamlConfig {
     })
     public boolean NEED_REASON = false;
     public boolean OFF_SPEC_ON_GAMEMODE_CHANGE = true;
+    public boolean SUSPECT_GLOW = true;
 
     @Comment("World and coordinates where player teleports to after a stop spec.")
     public String TELEPORT_WORLD_NAME = "world";
