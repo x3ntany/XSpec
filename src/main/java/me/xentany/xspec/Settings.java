@@ -43,6 +43,9 @@ public final class Settings extends YamlConfig {
     public boolean OFF_SPEC_ON_GAMEMODE_CHANGE = true;
     public boolean SUSPECT_GLOW = true;
 
+    @Comment(value = "For spectator", at = Comment.At.SAME_LINE)
+    public boolean NIGHT_VISION = true;
+
     @Comment("World and coordinates where player teleports to after a stop spec.")
     public String TELEPORT_WORLD_NAME = "world";
     public double TELEPORT_X = 0.5d;
