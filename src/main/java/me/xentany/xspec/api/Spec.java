@@ -5,6 +5,8 @@ import me.xentany.xspec.spec.SpecBarImpl;
 import me.xentany.xspec.spec.SpecImpl;
 import me.xentany.xspec.spec.SpecLoggerImpl;
 import me.xentany.xspec.util.MessageUtil;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -15,8 +17,12 @@ public interface Spec {
 
   Player spectator();
   Player suspect();
+  Location oldLocation();
+  GameMode oldGameMode();
   SpecLogger logger();
   SpecBar specBar();
+  String reason();
+  long timestamp();
 
   // @Deprecated(since = "1.0.0", forRemoval = true)
   // @Contract(" -> fail")
@@ -37,13 +43,17 @@ public interface Spec {
     private final Player spectator;
     private final Player suspect;
     private final SpecLogger logger;
+    private final long timestamp;
     private SpecBar specBar;
+    private String reason;
 
     public Builder(final @NotNull Player spectator, final @NotNull Player suspect) {
       this.spectator = spectator;
       this.suspect = suspect;
       this.logger = new SpecLoggerImpl(spectator, suspect);
+      this.timestamp = System.currentTimeMillis();
       this.specBar = new SpecBarImpl(MessageUtil.getFormattedComponent(Settings.IMP.MAIN.BAR_NAME, suspect.getName()), Settings.IMP.MAIN.BAR_COLOR, Settings.IMP.MAIN.BAR_OVERLAY);
+      this.reason = "";
     }
 
     public Builder specBar(final @NotNull SpecBar specBar) {
@@ -54,6 +64,7 @@ public interface Spec {
     public Builder reason(final @Nullable String reason) {
       if (reason != null) {
         this.logger.log("Reason: " + reason);
+        this.reason = reason;
       }
 
       return this;
@@ -63,8 +74,12 @@ public interface Spec {
       return new SpecImpl(
           this.spectator,
           this.suspect,
+          this.spectator.getLocation(),
+          this.spectator.getGameMode(),
           this.logger,
-          this.specBar
+          this.specBar,
+          this.reason,
+          this.timestamp
       );
     }
   }
