@@ -33,10 +33,14 @@ public final class SpecPlugin extends JavaPlugin {
     Bukkit.getPluginManager().registerEvents(new SpecHandler(), this);
 
     if (Settings.IMP.MAIN.BSTATS) {
-      new Metrics(this, 23644);
+      var metrics = new Metrics(this, 23644);
+
+      metrics.addCustomChart(new Metrics.SimplePie("update_check_enabled", () ->
+          Settings.IMP.MAIN.CHECK_FOR_UPDATES ? "enabled" : "disabled")
+      );
     }
 
-    this.laterVersionFetcher = new LatestVersionFetcher("x3ntany", "XSpec");
+    this.laterVersionFetcher = new LatestVersionFetcher("X-Bukkit-Community", "XSpec");
     this.startCheckingForUpdates();
   }
 
