@@ -60,13 +60,13 @@ public final class SpecCommand implements CommandExecutor, TabCompleter {
 
         Optional.ofNullable(Bukkit.getPlayer(args[1])).ifPresentOrElse(
             suspect -> {
-              if (suspect.hasPermission("xspec.bypass")) {
-                MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.PLAYER_BYPASSED);
+              if (suspect == spectator) {
+                MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.CANNOT_SPECTATE_SELF);
                 return;
               }
 
-              if (suspect == spectator) {
-                MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.CANNOT_SPECTATE_SELF);
+              if (suspect.hasPermission("xspec.bypass")) {
+                MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.PLAYER_BYPASSED);
                 return;
               }
 
