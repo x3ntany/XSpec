@@ -41,7 +41,8 @@ public final class SpecManagerImpl implements SpecManager {
     Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () ->
         specs.values().forEach(spec -> {
           var spectator = spec.spectator();
-          var suspectLocation = spec.suspect().getLocation();
+          var suspect = spec.suspect();
+          var suspectLocation = suspect.getLocation();
           var spectatorLocation = spectator.getLocation();
 
           spec.logger().logLocation();
@@ -52,6 +53,10 @@ public final class SpecManagerImpl implements SpecManager {
               spectator.teleportAsync(suspectLocation);
               MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.TOO_FAR);
             });
+          }
+
+          if (Settings.IMP.MAIN.ACTIONBAR) {
+            spectator.sendActionBar(MessageUtil.getFormattedComponent(Settings.IMP.MAIN.MESSAGES.ACTIONBAR, suspect.getName(), String.valueOf(suspect.getPing())));
           }
         }), 60L, 60L);
   }
@@ -73,6 +78,8 @@ public final class SpecManagerImpl implements SpecManager {
     var spectator = spec.spectator();
 
     if (!this.specs.containsKey(spectator)) {
+      var suspect = spec.suspect();
+
       spectator.setGameMode(GameMode.SPECTATOR);
 
       this.specs.put(spectator, spec);
@@ -80,24 +87,32 @@ public final class SpecManagerImpl implements SpecManager {
       ProtocolLibUtil.hideDebugInfo(spectator);
 
       if (Settings.IMP.MAIN.SUSPECT_GLOW) {
-        ProtocolLibUtil.addGlowingRelation(spec.suspect(), spectator);
+        ProtocolLibUtil.addGlowingRelation(suspect, spectator);
       }
 
       if (Settings.IMP.MAIN.NIGHT_VISION) {
         ProtocolLibUtil.addNightVision(spectator);
       }
 
-      spectator.teleportAsync(spec.suspect().getLocation());
+      spectator.teleportAsync(suspect.getLocation());
 
       if (Settings.IMP.MAIN.BOSSBAR_ENABLED) {
         spectator.showBossBar(spec.specBar().bossBar());
+      }
+
+      if (Settings.IMP.MAIN.NOTIFY) {
+        Bukkit.getOnlinePlayers().stream()
+            .filter(player -> player.hasPermission("xspec.notify"))
+            .forEach(player ->
+                MessageUtil.formatAndSendIfNotEmpty(player, Settings.IMP.MAIN.MESSAGES.STARTED_NOTIFY, spectator.getName(), suspect.getName(), spec.reason(), DateFormatUtil.getFormattedDate())
+            );
       }
 
       var webhook = Settings.IMP.MAIN.WEBHOOK;
 
       if (!webhook.isEmpty()) {
         WebhookUtil.sendWebhookAsync(webhook, Settings.IMP.MAIN.MESSAGES.STARTED_WEBHOOK
-            .replace("{0}", spec.suspect().getName())
+            .replace("{0}", suspect.getName())
             .replace("{1}", DateFormatUtil.getFormattedDate())
             .replace("{2}", spec.reason()));
       }
@@ -119,12 +134,37 @@ public final class SpecManagerImpl implements SpecManager {
           MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.WORLD_NOT_FOUND);
           return spectator.getWorld();
         }), x, y, z);
+    var suspect = spec.suspect();
+    var durationMillis = System.currentTimeMillis() - spec.timestamp();
+    var totalSeconds = durationMillis / 1000;
+    var totalMinutes = durationMillis / (1000 * 60);
+    var totalHours = durationMillis / (1000 * 60 * 60);
+    var seconds = (totalSeconds) % 60;
+    var minutes = (totalMinutes) % 60;
+    var hours = (totalHours) % 24;
+
+    var duration = MessageFormat.format(Settings.IMP.MAIN.DURATION_FORMAT,
+        hours,
+        minutes,
+        seconds,
+        totalHours,
+        totalMinutes,
+        totalSeconds
+    );
+
+    if (Settings.IMP.MAIN.NOTIFY) {
+      Bukkit.getOnlinePlayers().stream()
+          .filter(player -> player.hasPermission("xspec.notify"))
+          .forEach(player ->
+              MessageUtil.formatAndSendIfNotEmpty(player, Settings.IMP.MAIN.MESSAGES.STOPPED_NOTIFY, spectator.getName(), suspect.getName(), DateFormatUtil.getFormattedDate(), duration)
+          );
+    }
 
     spectator.teleportAsync(location);
     spectator.hideBossBar(spec.specBar().bossBar());
 
     ProtocolLibUtil.showDebugInfo(spectator);
-    ProtocolLibUtil.removeGlowingRelation(spec.suspect(), spectator);
+    ProtocolLibUtil.removeGlowingRelation(suspect, spectator);
     ProtocolLibUtil.removeNightVision(spectator);
 
     ((SpecLoggerImpl) spec.logger()).stop();
@@ -144,25 +184,8 @@ public final class SpecManagerImpl implements SpecManager {
     var webhook = Settings.IMP.MAIN.WEBHOOK;
 
     if (!webhook.isEmpty()) {
-      var durationMillis = System.currentTimeMillis() - spec.timestamp();
-      var totalSeconds = durationMillis / 1000;
-      var totalMinutes = durationMillis / (1000 * 60);
-      var totalHours = durationMillis / (1000 * 60 * 60);
-      var seconds = (totalSeconds) % 60;
-      var minutes = (totalMinutes) % 60;
-      var hours = (totalHours) % 24;
-
-      var duration = MessageFormat.format(Settings.IMP.MAIN.DURATION_FORMAT,
-          hours,
-          minutes,
-          seconds,
-          totalHours,
-          totalMinutes,
-          totalSeconds
-      );
-
       WebhookUtil.sendWebhookAsync(webhook, Settings.IMP.MAIN.MESSAGES.STOPPED_WEBHOOK
-          .replace("{0}", spec.suspect().getName())
+          .replace("{0}", suspect.getName())
           .replace("{1}", DateFormatUtil.getFormattedDate())
           .replace("{2}", duration));
     }
