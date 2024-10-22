@@ -4,8 +4,10 @@ import me.xentany.xspec.Settings;
 import me.xentany.xspec.SpecPlugin;
 import me.xentany.xspec.api.Spec;
 import me.xentany.xspec.api.SpecManager;
+import me.xentany.xspec.util.DateFormatUtil;
 import me.xentany.xspec.util.ProtocolLibUtil;
 import me.xentany.xspec.util.MessageUtil;
+import me.xentany.xspec.util.WebhookUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -14,6 +16,8 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnmodifiableView;
 
+import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -73,20 +77,31 @@ public final class SpecManagerImpl implements SpecManager {
 
       this.specs.put(spectator, spec);
 
-      spectator.showBossBar(spec.specBar().bossBar());
-
       ProtocolLibUtil.hideDebugInfo(spectator);
-
-      spectator.teleportAsync(spec.suspect().getLocation());
 
       if (Settings.IMP.MAIN.SUSPECT_GLOW) {
         ProtocolLibUtil.addGlowingRelation(spec.suspect(), spectator);
       }
 
-      //if (Settings.IMP.MAIN.NIGHT_VISION) {
-      //  ProtocolLibUtil.addNightVision(spectator);
-      //}
-      //uuups troblle
+      if (Settings.IMP.MAIN.NIGHT_VISION) {
+        ProtocolLibUtil.addNightVision(spectator);
+      }
+
+      spectator.teleportAsync(spec.suspect().getLocation());
+
+      if (Settings.IMP.MAIN.BOSSBAR_ENABLED) {
+        spectator.showBossBar(spec.specBar().bossBar());
+      }
+
+      var webhook = Settings.IMP.MAIN.WEBHOOK;
+
+      if (!webhook.isEmpty()) {
+        WebhookUtil.sendWebhookAsync(webhook, Settings.IMP.MAIN.MESSAGES.STARTED_WEBHOOK
+            .replace("{0}", spec.suspect().getName())
+            .replace("{1}", DateFormatUtil.getFormattedDate())
+            .replace("{2}", spec.reason()));
+      }
+
       return true;
     } else {
       return false;
@@ -96,30 +111,61 @@ public final class SpecManagerImpl implements SpecManager {
   @Override
   public void stop(final @NotNull Spec spec) {
     var spectator = spec.spectator();
-
     var x = Settings.IMP.MAIN.TELEPORT_X;
     var y = Settings.IMP.MAIN.TELEPORT_Y;
     var z = Settings.IMP.MAIN.TELEPORT_Z;
-
-    Optional.ofNullable(Bukkit.getWorld(Settings.IMP.MAIN.TELEPORT_WORLD_NAME)).ifPresentOrElse(
-        world -> spectator.teleportAsync(new Location(world, x, y, z)),
-        () -> {
-          spectator.teleportAsync(new Location(spectator.getWorld(), x, y, z));
+    var location = Settings.IMP.MAIN.RETURN_TO_OLD_LOCATION ? spec.oldLocation() : new Location(Optional.ofNullable(Bukkit.getWorld(Settings.IMP.MAIN.TELEPORT_WORLD_NAME))
+        .orElseGet(() -> {
           MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.WORLD_NOT_FOUND);
-        }
-    );
+          return spectator.getWorld();
+        }), x, y, z);
 
+    spectator.teleportAsync(location);
     spectator.hideBossBar(spec.specBar().bossBar());
 
     ProtocolLibUtil.showDebugInfo(spectator);
     ProtocolLibUtil.removeGlowingRelation(spec.suspect(), spectator);
-    //ProtocolLibUtil.removeNightVision(spectator);
+    ProtocolLibUtil.removeNightVision(spectator);
 
     ((SpecLoggerImpl) spec.logger()).stop();
 
     this.specs.remove(spectator);
 
-    spectator.setGameMode(GameMode.SURVIVAL);
+    var gamemode = Settings.IMP.MAIN.RETURN_TO_OLD_GAMEMODE ? spec.oldGameMode() : Arrays.stream(GameMode.values())
+        .filter(gameMode -> gameMode.name().equalsIgnoreCase(Settings.IMP.MAIN.STOP_GAMEMODE))
+        .findFirst()
+        .orElseGet(() -> {
+          SpecPlugin.getInstance().getLogger().severe("Unknown gamemode: " + Settings.IMP.MAIN.STOP_GAMEMODE + ". Defaulting to SURVIVAL");
+          return GameMode.SURVIVAL;
+        });
+
+    spectator.setGameMode(gamemode);
+
+    var webhook = Settings.IMP.MAIN.WEBHOOK;
+
+    if (!webhook.isEmpty()) {
+      var durationMillis = System.currentTimeMillis() - spec.timestamp();
+      var totalSeconds = durationMillis / 1000;
+      var totalMinutes = durationMillis / (1000 * 60);
+      var totalHours = durationMillis / (1000 * 60 * 60);
+      var seconds = (totalSeconds) % 60;
+      var minutes = (totalMinutes) % 60;
+      var hours = (totalHours) % 24;
+
+      var duration = MessageFormat.format(Settings.IMP.MAIN.DURATION_FORMAT,
+          hours,
+          minutes,
+          seconds,
+          totalHours,
+          totalMinutes,
+          totalSeconds
+      );
+
+      WebhookUtil.sendWebhookAsync(webhook, Settings.IMP.MAIN.MESSAGES.STOPPED_WEBHOOK
+          .replace("{0}", spec.suspect().getName())
+          .replace("{1}", DateFormatUtil.getFormattedDate())
+          .replace("{2}", duration));
+    }
   }
 
   @Override
