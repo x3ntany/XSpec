@@ -12,3 +12,5 @@ permissions:
     default: op
   xspec.bypass:
     default: op
+  xspec.notify:
+    default: op
