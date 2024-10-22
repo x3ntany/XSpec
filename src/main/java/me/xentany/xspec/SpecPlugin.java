@@ -22,8 +22,9 @@ public final class SpecPlugin extends JavaPlugin {
     Settings.IMP.reload(this.getDataFolder().toPath().resolve("config.yml").toFile());
 
     DateFormatUtil.load();
-    ProtocolLibUtil.load();
     MessageUtil.load();
+    ProtocolLibUtil.load();
+    WebhookUtil.load();
 
     this.specManager = new SpecManagerImpl();
 
