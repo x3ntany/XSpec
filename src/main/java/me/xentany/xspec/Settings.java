@@ -40,11 +40,35 @@ public final class Settings extends YamlConfig {
         "which will be stored in the logs"
     })
     public boolean NEED_REASON = false;
+
+    public List<String> REASONS = List.of("cheats", "report");
+
+    @Comment({
+        "If true, you can enter any reason, otherwise",
+        "if false, you can only enter pre-prepared reasons from the config (TabComplete is present)"
+    })
+    public boolean ANY_REASON = false;
+
+    @Comment({
+        "If true, it will require an exact match of reasons from the logged reasons, otherwise",
+        "if false, it will offer tab complete but will not complain that the reason is not from the logged reasons,",
+        "simply put, allow any reason but leave tab complete"
+    })
+    public boolean EXACT_REASON = true;
     public boolean OFF_SPEC_ON_GAMEMODE_CHANGE = true;
     public boolean SUSPECT_GLOW = true;
+    public boolean BOSSBAR_ENABLED = true;
+
+    @Comment("When stopped, it teleports to the old location, not from the config")
+    public boolean RETURN_TO_OLD_LOCATION = false;
+
+    @Comment("When stopped, the old game mode is enabled, not from the config")
+    public boolean RETURN_TO_OLD_GAMEMODE = false;
 
     @Comment(value = "For spectator", at = Comment.At.SAME_LINE)
     public boolean NIGHT_VISION = true;
+
+    public String STOP_GAMEMODE = "SURVIVAL";
 
     @Comment("World and coordinates where player teleports to after a stop spec.")
     public String TELEPORT_WORLD_NAME = "world";
@@ -52,12 +76,25 @@ public final class Settings extends YamlConfig {
     public double TELEPORT_Y = 90.0d;
     public double TELEPORT_Z = 0.5d;
 
+    @Comment("Leave it blank so it doesn't send anything")
+    public String WEBHOOK = "";
+
     public String BAR_NAME = "&6Spectating behind player {0}";
     public BossBar.Color BAR_COLOR = BossBar.Color.WHITE;
     public BossBar.Overlay BAR_OVERLAY = BossBar.Overlay.PROGRESS;
 
     @Comment("Maximum distance in blocks at which a spectator can fly away.")
     public double MAXIMUM_DISTANCE = 25.0d;
+
+    @Comment({
+        "{0} - Hours",
+        "{1} - Minutes",
+        "{2} - Seconds",
+        "{3} - Hours in total",
+        "{4} - Minutes in total",
+        "{5} - Seconds in total"
+    })
+    public String DURATION_FORMAT = "{0} h, {1} min, {2} sec";
 
     @Comment("Recommend second precision for log naming.")
     public String DATE_PATTERN = "dd.MM.yyyy - HH:mm:ss";
@@ -88,12 +125,16 @@ public final class Settings extends YamlConfig {
       public String SPECIFY = "Please specify the suspect's nickname.";
       public String SPECIFY_REASON = "Please specify the reason.";
       public String SUSPECT_NOT_FOUND = "The player could not be found.";
+      public String PLAYER_BYPASSED = "You can't spectating this player.";
       public String CANNOT_SPECTATE_SELF = "You cannot spectate yourself.";
       public String NO_SPECTATE_SPECTATOR = "You cannot spectate a player who is already spectating.";
+      public String INVALID_REASON = "You must write a prepared reason.";
       public String STARTED = "You are now spectating {0}. Date: {1}";
+      public String STARTED_WEBHOOK = "{\"content\":null,\"embeds\":[{\"title\":\"Spectating of `{0}` has begun.\",\"description\":\"Start date: {1}\\nReason: {2}\",\"color\":16711680}],\"attachments\":[]}";
       public String ALREADY_STARTED = "You are already spectating someone.";
       public String WORLD_NOT_FOUND = "&4The world for teleportation could not be found. Please contact an administrator.";
       public String STOPPED = "You have stopped spectating. Date: {0}, Suspect: {1}";
+      public String STOPPED_WEBHOOK = "{\"content\":null,\"embeds\":[{\"title\":\"Spectating of `{0}` is complete.\",\"description\":\"End date: {1}\\nDuration: {2}\",\"color\":16745728}],\"attachments\":[]}";
       public String NOT_SPECTATING = "You are not currently spectating anyone.";
       public String SUSPECT_LEFT = "The player you were spectating ({0}) has left the server. Date: {1}";
       public String TOO_FAR = "You cannot move too far away while spectating.";
