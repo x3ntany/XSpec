@@ -11,6 +11,7 @@ import com.comphenix.protocol.wrappers.WrappedDataWatcher.WrappedDataWatcherObje
 import me.xentany.xspec.SpecPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -104,6 +105,26 @@ public final class ProtocolLibUtil {
         ProtocolLibUtil.sendGlowingPacket(target, Set.of(viewer), false);
       }
     }
+  }
+
+  public static void addNightVision(final @NotNull Player player) {
+    var packet = ProtocolLibUtil.protocolManager.createPacket(PacketType.Play.Server.ENTITY_EFFECT);
+
+    packet.getIntegers().write(0, player.getEntityId());
+    packet.getBytes().write(0, (byte) 16);
+    packet.getBytes().write(1, (byte) 0);
+    packet.getIntegers().write(1, Integer.MAX_VALUE);
+
+    ProtocolLibUtil.protocolManager.sendServerPacket(player, packet);
+  }
+
+  public static void removeNightVision(final @NotNull Player player) {
+    var packet = ProtocolLibUtil.protocolManager.createPacket(PacketType.Play.Server.REMOVE_ENTITY_EFFECT);
+
+    packet.getIntegers().write(0, player.getEntityId());
+    packet.getEffectTypes().write(0, PotionEffectType.NIGHT_VISION);
+
+    ProtocolLibUtil.protocolManager.sendServerPacket(player, packet);
   }
 
   private static void sendGlowingPacket(final @NotNull Player target,
