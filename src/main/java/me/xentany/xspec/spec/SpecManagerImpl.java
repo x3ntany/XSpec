@@ -45,6 +45,10 @@ public final class SpecManagerImpl implements SpecManager {
           var suspectLocation = suspect.getLocation();
           var spectatorLocation = spectator.getLocation();
 
+          if (Settings.IMP.MAIN.ACTIONBAR) {
+            spectator.sendActionBar(MessageUtil.getFormattedComponent(Settings.IMP.MAIN.MESSAGES.ACTIONBAR, suspect.getName(), String.valueOf(suspect.getPing())));
+          }
+
           spec.logger().logLocation();
 
           if (!spectatorLocation.getWorld().equals(suspectLocation.getWorld()) ||
@@ -54,11 +58,7 @@ public final class SpecManagerImpl implements SpecManager {
               MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.TOO_FAR);
             });
           }
-
-          if (Settings.IMP.MAIN.ACTIONBAR) {
-            spectator.sendActionBar(MessageUtil.getFormattedComponent(Settings.IMP.MAIN.MESSAGES.ACTIONBAR, suspect.getName(), String.valueOf(suspect.getPing())));
-          }
-        }), 60L, 60L);
+        }), 40L, 40L);
   }
 
   @Override
@@ -103,6 +103,7 @@ public final class SpecManagerImpl implements SpecManager {
       if (Settings.IMP.MAIN.NOTIFY) {
         Bukkit.getOnlinePlayers().stream()
             .filter(player -> player.hasPermission("xspec.notify"))
+            .filter(player -> player != spectator)
             .forEach(player ->
                 MessageUtil.formatAndSendIfNotEmpty(player, Settings.IMP.MAIN.MESSAGES.STARTED_NOTIFY, spectator.getName(), suspect.getName(), spec.reason(), DateFormatUtil.getFormattedDate())
             );
@@ -155,6 +156,7 @@ public final class SpecManagerImpl implements SpecManager {
     if (Settings.IMP.MAIN.NOTIFY) {
       Bukkit.getOnlinePlayers().stream()
           .filter(player -> player.hasPermission("xspec.notify"))
+          .filter(player -> player != spectator)
           .forEach(player ->
               MessageUtil.formatAndSendIfNotEmpty(player, Settings.IMP.MAIN.MESSAGES.STOPPED_NOTIFY, spectator.getName(), suspect.getName(), DateFormatUtil.getFormattedDate(), duration)
           );
