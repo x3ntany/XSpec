@@ -10,3 +10,5 @@ commands:
 permissions:
   xspec.use:
     default: op
+  xspec.bypass:
+    default: op
