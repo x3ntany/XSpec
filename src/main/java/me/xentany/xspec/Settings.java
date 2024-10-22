@@ -59,6 +59,12 @@ public final class Settings extends YamlConfig {
     public boolean SUSPECT_GLOW = true;
     public boolean BOSSBAR_ENABLED = true;
 
+    @Comment("Will message everyone who has xspec.notify them that someone has started spectating or finished")
+    public boolean NOTIFY = true;
+
+    @Comment(value = "For spectator", at = Comment.At.SAME_LINE)
+    public boolean ACTIONBAR = true;
+
     @Comment("When stopped, it teleports to the old location, not from the config")
     public boolean RETURN_TO_OLD_LOCATION = false;
 
@@ -131,13 +137,16 @@ public final class Settings extends YamlConfig {
       public String INVALID_REASON = "You must write a prepared reason.";
       public String STARTED = "You are now spectating {0}. Date: {1}";
       public String STARTED_WEBHOOK = "{\"content\":null,\"embeds\":[{\"title\":\"Spectating of `{0}` has begun.\",\"description\":\"Start date: {1}\\nReason: {2}\",\"color\":16711680}],\"attachments\":[]}";
+      public String STARTED_NOTIFY = "Spectator {0} started spectating for {1} for the reason {2} in {3}.";
       public String ALREADY_STARTED = "You are already spectating someone.";
       public String WORLD_NOT_FOUND = "&4The world for teleportation could not be found. Please contact an administrator.";
       public String STOPPED = "You have stopped spectating. Date: {0}, Suspect: {1}";
       public String STOPPED_WEBHOOK = "{\"content\":null,\"embeds\":[{\"title\":\"Spectating of `{0}` is complete.\",\"description\":\"End date: {1}\\nDuration: {2}\",\"color\":16745728}],\"attachments\":[]}";
+      public String STOPPED_NOTIFY = "Spectator {0} stopped spectating for {1} at {2} the duration was {3}.";
       public String NOT_SPECTATING = "You are not currently spectating anyone.";
       public String SUSPECT_LEFT = "The player you were spectating ({0}) has left the server. Date: {1}";
       public String TOO_FAR = "You cannot move too far away while spectating.";
+      public String ACTIONBAR = "&bSuspect's nickname {0}, suspect's ping: {1}.";
       public String COMMAND_BLOCKED = "You cannot use this command while spectating.";
       public String CANNOT_CHANGE_GAMEMODE = "You can't change the gamemode during the spectating.";
       public String STOPPED_BY_GAMEMODE_CHANGE = "Spectating stopped by changing the game mode. Date: {0}, Suspect: {1}";
