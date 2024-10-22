@@ -60,6 +60,11 @@ public final class SpecCommand implements CommandExecutor, TabCompleter {
 
         Optional.ofNullable(Bukkit.getPlayer(args[1])).ifPresentOrElse(
             suspect -> {
+              if (suspect.hasPermission("xspec.bypass")) {
+                MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.PLAYER_BYPASSED);
+                return;
+              }
+
               if (suspect == spectator) {
                 MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.CANNOT_SPECTATE_SELF);
                 return;
@@ -70,8 +75,18 @@ public final class SpecCommand implements CommandExecutor, TabCompleter {
                 return;
               }
 
+              var reason = needReason ? String.join(" ", Arrays.copyOfRange(args, 2, args.length)).trim() : null;
+
+              if (needReason && !Settings.IMP.MAIN.ANY_REASON && Settings.IMP.MAIN.EXACT_REASON) {
+                if (Settings.IMP.MAIN.REASONS.stream()
+                    .noneMatch(allowedReason -> allowedReason.equalsIgnoreCase(reason))) {
+                  MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.INVALID_REASON);
+                  return;
+                }
+              }
+
               var spec = Spec.builder(spectator, suspect)
-                  .reason(needReason ? String.join(" ", Arrays.copyOfRange(args, 2, args.length)).trim() : null)
+                  .reason(reason)
                   .build();
 
               if (specManager.tryStart(spec)) {
@@ -105,18 +120,23 @@ public final class SpecCommand implements CommandExecutor, TabCompleter {
     return true;
   }
 
-  //todo afk check
   @Contract(pure = true)
   @Override
   public @Unmodifiable @NotNull List<String> onTabComplete(final @NotNull CommandSender sender,
                                                            final @NotNull Command command,
                                                            final @NotNull String alias,
                                                            final String @NotNull [] args) {
-    return !(sender instanceof Player) ? List.of() : args.length == 1 ? Stream.of("go", "off")
-        .filter(subcommand -> subcommand.startsWith(args[0].toLowerCase(Locale.ROOT)))
-        .toList() : args.length == 2 && args[0].equalsIgnoreCase("go") ? Bukkit.getOnlinePlayers().stream()
+    return !(sender instanceof Player) ? List.of()
+        : args.length == 1 ? Stream.of("go", "off").filter(subcommand -> subcommand.startsWith(args[0].toLowerCase(Locale.ROOT)))
+        .toList() : args[0].equalsIgnoreCase("go") && args.length == 2 ? Bukkit.getOnlinePlayers().stream()
         .map(Player::getName)
         .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(args[1].toLowerCase(Locale.ROOT)))
+        .toList() : args[0].equalsIgnoreCase("go") && args.length >= 3 && !Settings.IMP.MAIN.ANY_REASON && Settings.IMP.MAIN.NEED_REASON ? Settings.IMP.MAIN.REASONS.stream()
+        .filter(reason -> reason.toLowerCase(Locale.ROOT)
+            .startsWith(String.join(" ", Arrays.copyOfRange(args, 2, args.length))
+                .toLowerCase(Locale.ROOT)
+            )
+        )
         .toList() : List.of();
   }
 }
