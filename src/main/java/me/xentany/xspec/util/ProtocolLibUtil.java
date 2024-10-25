@@ -38,8 +38,16 @@ public final class ProtocolLibUtil {
 
   public static void load() {
     var plugin = SpecPlugin.getInstance();
+    var protocolLibPlugin = Bukkit.getPluginManager().getPlugin("ProtocolLib");
 
-    if (Bukkit.getPluginManager().getPlugin("ProtocolLib") != null) {
+    if (protocolLibPlugin != null) {
+      var protocolLibVersion = protocolLibPlugin.getDescription().getVersion();
+
+      if (!isVersionCompatible(protocolLibPlugin.getDescription().getVersion(), "5.1.0")) {
+        plugin.getLogger().warning("ProtocolLib version 5.1.0 or higher is required for ProtocolLibUtil to function. Current version: " + protocolLibVersion);
+        return;
+      }
+
       ProtocolLibUtil.protocolManager = ProtocolLibrary.getProtocolManager();
       ProtocolLibUtil.isProtocolLibAvailable = true;
       ProtocolLibUtil.glowingPacketListener = new PacketAdapter(plugin, ListenerPriority.NORMAL, PacketType.Play.Server.ENTITY_METADATA) {
@@ -62,6 +70,26 @@ public final class ProtocolLibUtil {
     } else {
       plugin.getLogger().warning("ProtocolLib not found. ProtocolLibUtil will not function");
     }
+  }
+
+  @SuppressWarnings("SameParameterValue") // idiot
+  private static boolean isVersionCompatible(final @NotNull String version,
+                                             final @NotNull String minimumVersion) {
+    var currentParts = version.split("-")[0].split("\\.");
+    var requiredParts = minimumVersion.split("\\.");
+
+    for (int i = 0; i < requiredParts.length; i++) {
+      int current = i < currentParts.length ? Integer.parseInt(currentParts[i]) : 0;
+      int required = Integer.parseInt(requiredParts[i]);
+
+      if (current < required) {
+        return false;
+      } else if (current > required) {
+        return true;
+      }
+    }
+
+    return true;
   }
 
   private static void sendReducedDebugInfoPacket(final @NotNull Player player, final boolean hideDebugInfo) {
