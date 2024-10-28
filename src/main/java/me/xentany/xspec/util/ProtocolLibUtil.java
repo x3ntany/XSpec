@@ -8,61 +8,50 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher.WrappedDataWatcherObject;
-import me.xentany.xspec.SpecPlugin;
+import com.comphenix.protocol.wrappers.WrappedWatchableObject;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public final class ProtocolLibUtil {
 
   private static final ConcurrentMap<UUID, Set<UUID>> GLOWING_RELATIONS;
-  private static final ConcurrentMap<UUID, WrappedDataWatcher> WATCHERS;
 
   static {
     GLOWING_RELATIONS = new ConcurrentHashMap<>();
-    WATCHERS = new ConcurrentHashMap<>();
   }
 
+  private static Plugin plugin;
   private static ProtocolManager protocolManager;
   private static PacketAdapter glowingPacketListener;
   private static boolean isProtocolLibAvailable = false;
 
-  public static void load() {
-    var plugin = SpecPlugin.getInstance();
+  public static void load(final Plugin plugin) {
+    ProtocolLibUtil.plugin = plugin;
+
     var protocolLibPlugin = Bukkit.getPluginManager().getPlugin("ProtocolLib");
 
     if (protocolLibPlugin != null) {
-      var protocolLibVersion = protocolLibPlugin.getDescription().getVersion();
-
-      if (!isVersionCompatible(protocolLibPlugin.getDescription().getVersion(), "5.1.0")) {
-        plugin.getLogger().warning("ProtocolLib version 5.1.0 or higher is required for ProtocolLibUtil to function. Current version: " + protocolLibVersion);
-        return;
-      }
-
       ProtocolLibUtil.protocolManager = ProtocolLibrary.getProtocolManager();
       ProtocolLibUtil.isProtocolLibAvailable = true;
       ProtocolLibUtil.glowingPacketListener = new PacketAdapter(plugin, ListenerPriority.NORMAL, PacketType.Play.Server.ENTITY_METADATA) {
 
         @Override
         public void onPacketSending(final PacketEvent event) {
-          var target = event.getPlayer();
-
-          if (target != null && isGlowingForAny(target)) {
-            var viewers = getViewers(target);
-
-            if (!viewers.isEmpty()) {
-              ProtocolLibUtil.sendGlowingPacket(target, viewers, true);
-            }
-          }
+          ProtocolLibUtil.updateGlowing(event.getPlayer());
         }
       };
 
@@ -72,24 +61,14 @@ public final class ProtocolLibUtil {
     }
   }
 
-  @SuppressWarnings("SameParameterValue") // idiot
-  private static boolean isVersionCompatible(final @NotNull String version,
-                                             final @NotNull String minimumVersion) {
-    var currentParts = version.split("-")[0].split("\\.");
-    var requiredParts = minimumVersion.split("\\.");
+  public static void updateGlowing(final @Nullable Player target) {
+    if (target != null && isGlowingForAny(target)) {
+      var viewers = getViewers(target);
 
-    for (int i = 0; i < requiredParts.length; i++) {
-      int current = i < currentParts.length ? Integer.parseInt(currentParts[i]) : 0;
-      int required = Integer.parseInt(requiredParts[i]);
-
-      if (current < required) {
-        return false;
-      } else if (current > required) {
-        return true;
+      if (!viewers.isEmpty()) {
+        ProtocolLibUtil.sendGlowingPacket(target, viewers, true);
       }
     }
-
-    return true;
   }
 
   private static void sendReducedDebugInfoPacket(final @NotNull Player player, final boolean hideDebugInfo) {
@@ -127,7 +106,6 @@ public final class ProtocolLibUtil {
       if (viewers != null && viewers.remove(viewer.getUniqueId())) {
         if (viewers.isEmpty()) {
           ProtocolLibUtil.GLOWING_RELATIONS.remove(target.getUniqueId());
-          ProtocolLibUtil.WATCHERS.remove(target.getUniqueId());
         }
 
         ProtocolLibUtil.sendGlowingPacket(target, Set.of(viewer), false);
@@ -159,29 +137,21 @@ public final class ProtocolLibUtil {
                                         final @NotNull Set<Player> viewers,
                                         final boolean glowing) {
     if (ProtocolLibUtil.isProtocolLibAvailable) {
-      var watcher = ProtocolLibUtil.WATCHERS.computeIfAbsent(target.getUniqueId(), uuid ->
-          new WrappedDataWatcher(target)
-      );
-      var flagsObject = new WrappedDataWatcherObject(0, WrappedDataWatcher.Registry.get(Byte.class));
-      var currentFlags = watcher.getByte(0);
-      byte flags = (currentFlags != null) ? currentFlags : 0;
+      try {
+        var flagsObject = new WrappedDataWatcherObject(0, WrappedDataWatcher.Registry.get(Byte.class));
+        var flags = glowing ? (byte) 0x40 : (byte) 0x00;
+        var watchable = new WrappedWatchableObject(flagsObject, flags);
+        var packet = ProtocolLibUtil.protocolManager.createPacket(PacketType.Play.Server.ENTITY_METADATA);
 
-      if (glowing) {
-        flags |= 64;
-      } else {
-        flags &= -65;
+        packet.getIntegers().write(0, target.getEntityId());
+        packet.getWatchableCollectionModifier().write(0, Collections.singletonList(watchable));
+
+        viewers.stream()
+            .filter(viewer -> !viewer.equals(target))
+            .forEach(viewer -> ProtocolLibUtil.protocolManager.sendServerPacket(viewer, packet));
+      } catch (final Exception e) {
+        plugin.getLogger().log(Level.SEVERE, "Error sending glowing packet: " + e.getMessage(), e.getMessage());
       }
-
-      if (currentFlags == null || currentFlags != flags) {
-        watcher.setObject(flagsObject, flags);
-      }
-
-      var packet = ProtocolLibUtil.protocolManager.createPacket(PacketType.Play.Server.ENTITY_METADATA);
-
-      packet.getIntegers().write(0, target.getEntityId());
-      packet.getWatchableCollectionModifier().write(0, watcher.getWatchableObjects());
-
-      viewers.forEach(viewer -> ProtocolLibUtil.protocolManager.sendServerPacket(viewer, packet));
     }
   }
 
