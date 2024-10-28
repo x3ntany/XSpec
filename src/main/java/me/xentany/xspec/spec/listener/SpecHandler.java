@@ -105,13 +105,11 @@ public final class SpecHandler implements Listener {
     this.specManager.findSpec(player).ifPresent(spec -> {
       this.specManager.stop(spec);
 
-      if (this.specManager.isSpectator(player)) {
-        MessageUtil.formatAndSendIfNotEmpty(player,
-            Settings.IMP.MAIN.MESSAGES.SUSPECT_LEFT,
-            spec.suspect().getName(),
-            DateFormatUtil.getFormattedDate()
-        );
-      }
+      MessageUtil.formatAndSendIfNotEmpty(spec.spectator(),
+          Settings.IMP.MAIN.MESSAGES.SUSPECT_LEFT,
+          spec.suspect().getName(),
+          DateFormatUtil.getFormattedDate()
+      );
     });
-  }
+  } 
 }
