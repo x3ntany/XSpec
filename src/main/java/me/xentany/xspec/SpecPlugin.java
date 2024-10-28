@@ -23,7 +23,7 @@ public final class SpecPlugin extends JavaPlugin {
 
     DateFormatUtil.load();
     MessageUtil.load();
-    ProtocolLibUtil.load();
+    ProtocolLibUtil.load(this);
     WebhookUtil.load();
 
     this.specManager = new SpecManagerImpl();
