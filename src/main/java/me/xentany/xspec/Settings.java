@@ -59,6 +59,9 @@ public final class Settings extends YamlConfig {
     public boolean SUSPECT_GLOW = true;
     public boolean BOSSBAR_ENABLED = true;
 
+    @Comment("If false, the player after '/spec off' will stay where he wrote the command, no teleporting")
+    public boolean TELEPORT_AFTER_STOP = true;
+
     @Comment("Will message everyone who has xspec.notify them that someone has started spectating or finished")
     public boolean NOTIFY = true;
 
@@ -136,12 +139,12 @@ public final class Settings extends YamlConfig {
       public String NO_SPECTATE_SPECTATOR = "You cannot spectate a player who is already spectating.";
       public String INVALID_REASON = "You must write a prepared reason.";
       public String STARTED = "You are now spectating {0}. Date: {1}";
-      public String STARTED_WEBHOOK = "{\"content\":null,\"embeds\":[{\"title\":\"Spectating of `{0}` has begun.\",\"description\":\"Start date: {1}\\nReason: {2}\",\"color\":16711680}],\"attachments\":[]}";
+      public String STARTED_WEBHOOK = "{\"content\":null,\"embeds\":[{\"title\":\"Spectating of `{0}` has begun.\",\"description\":\"Start date: {1}\\nReason: {2}\\nSpectator: {4}\",\"color\":16711680}],\"attachments\":[]}";
       public String STARTED_NOTIFY = "Spectator {0} started spectating for {1} for the reason {2} in {3}.";
       public String ALREADY_STARTED = "You are already spectating someone.";
       public String WORLD_NOT_FOUND = "&4The world for teleportation could not be found. Please contact an administrator.";
       public String STOPPED = "You have stopped spectating. Date: {0}, Suspect: {1}";
-      public String STOPPED_WEBHOOK = "{\"content\":null,\"embeds\":[{\"title\":\"Spectating of `{0}` is complete.\",\"description\":\"End date: {1}\\nDuration: {2}\",\"color\":16745728}],\"attachments\":[]}";
+      public String STOPPED_WEBHOOK = "{\"content\":null,\"embeds\":[{\"title\":\"Spectating of `{0}` is complete.\",\"description\":\"End date: {1}\\nDuration: {2}\\nSpectator: {4}\",\"color\":16745728}],\"attachments\":[]}";
       public String STOPPED_NOTIFY = "Spectator {0} stopped spectating for {1} at {2} the duration was {3}.";
       public String NOT_SPECTATING = "You are not currently spectating anyone.";
       public String SUSPECT_LEFT = "The player you were spectating ({0}) has left the server. Date: {1}";
