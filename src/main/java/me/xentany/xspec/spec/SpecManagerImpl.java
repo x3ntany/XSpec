@@ -58,6 +58,8 @@ public final class SpecManagerImpl implements SpecManager {
               MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.TOO_FAR);
             });
           }
+
+          ProtocolLibUtil.updateGlowing(suspect);
         }), 40L, 40L);
   }
 
@@ -115,7 +117,8 @@ public final class SpecManagerImpl implements SpecManager {
         WebhookUtil.sendWebhookAsync(webhook, Settings.IMP.MAIN.MESSAGES.STARTED_WEBHOOK
             .replace("{0}", suspect.getName())
             .replace("{1}", DateFormatUtil.getFormattedDate())
-            .replace("{2}", spec.reason()));
+            .replace("{2}", spec.reason())
+            .replace("{4}", spectator.getName()));
       }
 
       return true;
@@ -162,7 +165,10 @@ public final class SpecManagerImpl implements SpecManager {
           );
     }
 
-    spectator.teleportAsync(location);
+    if (Settings.IMP.MAIN.TELEPORT_AFTER_STOP) {
+      spectator.teleportAsync(location);
+    }
+
     spectator.hideBossBar(spec.specBar().bossBar());
 
     ProtocolLibUtil.showDebugInfo(spectator);
@@ -189,7 +195,8 @@ public final class SpecManagerImpl implements SpecManager {
       WebhookUtil.sendWebhookAsync(webhook, Settings.IMP.MAIN.MESSAGES.STOPPED_WEBHOOK
           .replace("{0}", suspect.getName())
           .replace("{1}", DateFormatUtil.getFormattedDate())
-          .replace("{2}", duration));
+          .replace("{2}", duration)
+          .replace("{4}", spectator.getName()));
     }
   }
 
