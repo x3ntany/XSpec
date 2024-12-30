@@ -1,8 +1,8 @@
 package me.xentany.xspec;
 
 import me.xentany.xspec.api.SpecManager;
-import me.xentany.xspec.spec.command.SpecCommand;
-import me.xentany.xspec.spec.listener.SpecHandler;
+import me.xentany.xspec.spec.SpecCommand;
+import me.xentany.xspec.spec.SpecHandler;
 import me.xentany.xspec.spec.SpecManagerImpl;
 import me.xentany.xspec.util.*;
 import org.bukkit.Bukkit;

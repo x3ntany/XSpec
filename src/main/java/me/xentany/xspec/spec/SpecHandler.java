@@ -1,4 +1,4 @@
-package me.xentany.xspec.spec.listener;
+package me.xentany.xspec.spec;
 
 import me.xentany.xspec.Settings;
 import me.xentany.xspec.SpecPlugin;
@@ -8,13 +8,14 @@ import me.xentany.xspec.util.MessageUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
 
-public final class SpecHandler implements Listener {
+public final class  SpecHandler implements Listener {
 
   private final SpecPlugin plugin;
   private final SpecManager specManager;
@@ -24,13 +25,13 @@ public final class SpecHandler implements Listener {
     this.specManager = plugin.getSpecManager();
   }
 
-  @EventHandler
-  public void on(final @NotNull PlayerQuitEvent event) {
+  @EventHandler(priority = EventPriority.HIGHEST)
+  public void onQuit(final @NotNull PlayerQuitEvent event) {
     this.onLogout(event.getPlayer());
   }
 
-  @EventHandler
-  public void on(final @NotNull PlayerKickEvent event) {
+  @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+  public void onKick(final @NotNull PlayerKickEvent event) {
     this.onLogout(event.getPlayer());
   }
 

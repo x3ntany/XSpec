@@ -24,7 +24,7 @@ public final class Settings extends YamlConfig {
   @Create
   public MAIN MAIN;
 
-  public static class MAIN {
+  public static final class MAIN {
 
     @Comment("Lightweight and anonymous. Please keep enabled to support the author.")
     public boolean BSTATS = true;

@@ -99,7 +99,7 @@ public final class SpecManagerImpl implements SpecManager {
       spectator.teleportAsync(suspect.getLocation());
 
       if (Settings.IMP.MAIN.BOSSBAR_ENABLED) {
-        spectator.showBossBar(spec.specBar().bossBar());
+        spectator.showBossBar(spec.specBar().getBossBar());
       }
 
       if (Settings.IMP.MAIN.NOTIFY) {
@@ -166,10 +166,10 @@ public final class SpecManagerImpl implements SpecManager {
     }
 
     if (Settings.IMP.MAIN.TELEPORT_AFTER_STOP) {
-      spectator.teleportAsync(location);
+      spectator.teleport(location);
     }
 
-    spectator.hideBossBar(spec.specBar().bossBar());
+    spectator.hideBossBar(spec.specBar().getBossBar());
 
     ProtocolLibUtil.showDebugInfo(spectator);
     ProtocolLibUtil.removeGlowingRelation(suspect, spectator);

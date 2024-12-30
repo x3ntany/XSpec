@@ -19,22 +19,22 @@ public final class SpecBarImpl implements SpecBar {
   }
 
   @Override
-  public Component name() {
+  public Component getName() {
     return this.name;
   }
 
   @Override
-  public BossBar.Color color() {
+  public BossBar.Color getColor() {
     return this.color;
   }
 
   @Override
-  public BossBar.Overlay overlay() {
+  public BossBar.Overlay getOverlay() {
     return this.overlay;
   }
 
   @Override
-  public BossBar bossBar() {
+  public BossBar getBossBar() {
     return this.bossBar;
   }
 }

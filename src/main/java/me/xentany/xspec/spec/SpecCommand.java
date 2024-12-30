@@ -1,9 +1,8 @@
-package me.xentany.xspec.spec.command;
+package me.xentany.xspec.spec;
 
 import me.xentany.xspec.Settings;
 import me.xentany.xspec.SpecPlugin;
 import me.xentany.xspec.api.Spec;
-import me.xentany.xspec.api.SpecManager;
 import me.xentany.xspec.util.DateFormatUtil;
 import me.xentany.xspec.util.MessageUtil;
 import org.bukkit.Bukkit;
@@ -24,12 +23,6 @@ import java.util.stream.Stream;
 
 public final class SpecCommand implements CommandExecutor, TabCompleter {
 
-  private final SpecManager specManager;
-
-  public SpecCommand() {
-    this.specManager = SpecPlugin.getInstance().getSpecManager();
-  }
-
   @Override
   public boolean onCommand(final @NotNull CommandSender sender,
                            final @NotNull Command command,
@@ -43,6 +36,8 @@ public final class SpecCommand implements CommandExecutor, TabCompleter {
       MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.USAGE);
       return true;
     }
+
+    var specManager = SpecPlugin.getInstance().getSpecManager();
 
     switch (args[0].toLowerCase(Locale.ROOT)) {
       case "go" -> {
@@ -70,7 +65,7 @@ public final class SpecCommand implements CommandExecutor, TabCompleter {
                 return;
               }
 
-              if (this.specManager.isSpectator(suspect)) {
+              if (specManager.isSpectator(suspect)) {
                 MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.NO_SPECTATE_SPECTATOR);
                 return;
               }
@@ -102,9 +97,9 @@ public final class SpecCommand implements CommandExecutor, TabCompleter {
         );
       }
 
-      case "off" -> this.specManager.findSpec(spectator).ifPresentOrElse(
+      case "off" -> specManager.findSpec(spectator).ifPresentOrElse(
           spec -> {
-            this.specManager.stop(spec);
+            specManager.stop(spec);
 
             MessageUtil.formatAndSendIfNotEmpty(spectator, Settings.IMP.MAIN.MESSAGES.STOPPED,
                 DateFormatUtil.getFormattedDate(),
