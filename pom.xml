@@ -3,40 +3,62 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <groupId>me.xentany</groupId>
   <artifactId>XSpec</artifactId>
-  <version>1.1.2</version>
+  <version>1.1.3</version>
   <packaging>jar</packaging>
-
   <name>XSpec</name>
-
   <properties>
-    <java.version>1.8</java.version>
+    <java.version>17</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-
   <build>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version>
+        <version>3.13.0</version>
         <configuration>
-          <source>16</source>
-          <target>16</target>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
         </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.2.4</version>
+        <version>3.6.0</version>
         <executions>
           <execution>
             <phase>package</phase>
             <goals>
               <goal>shade</goal>
             </goals>
+            <configuration>
+              <filters>
+                <filter>
+                  <artifact>net.elytrium.commons:config</artifact>
+                  <excludes>
+                    <exclude>META-INF/MANIFEST.MF</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>net.elytrium.commons:kyori</artifact>
+                  <excludes>
+                    <exclude>META-INF/MANIFEST.MF</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <relocations>
+                <relocation>
+                  <pattern>net.elytrium.commons.config</pattern>
+                  <shadedPattern>me.xentany.xspec.shaded.net.elytrium.commons.config</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>net.elytrium.commons.kyori</pattern>
+                  <shadedPattern>me.xentany.xspec.shaded.net.elytrium.commons.kyori</shadedPattern>
+                </relocation>
+              </relocations>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -48,7 +70,6 @@
       </resource>
     </resources>
   </build>
-
   <repositories>
       <repository>
           <id>papermc-repo</id>
@@ -67,7 +88,6 @@
           <url>https://repo.dmulloy2.net/repository/public/</url>
       </repository>
   </repositories>
-
   <dependencies>
       <!--suppress VulnerableLibrariesLocal -->
       <!--idk-->
